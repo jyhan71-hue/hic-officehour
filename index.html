@@ -70,12 +70,34 @@
     .prof-btn .prof-name { font-size: 11px; font-weight: 500; color: var(--tx2); margin-top: 3px; }
     .prof-btn .loc { font-size: 10px; color: var(--tx3); margin-top: 2px; line-height: 1.4; }
 
-    .date-group { margin-bottom: 14px; }
-    .date-label { font-size: 12px; font-weight: 700; color: var(--tx2); padding: 6px 0; border-bottom: 1px solid var(--bdr); margin-bottom: 8px; }
-    .slot-list { display: flex; flex-direction: column; gap: 6px; }
-    .slot-item { display: flex; align-items: center; justify-content: space-between; padding: 10px 12px; border: 1.5px solid var(--bdr); border-radius: 8px; cursor: pointer; background: #fff; transition: all .18s; font-family: inherit; width: 100%; text-align: left; }
-    .slot-item:hover:not(:disabled) { border-color: var(--acc2); background: var(--alit); }
-    .slot-item.selected { border-color: var(--acc2); background: var(--alit); box-shadow: 0 0 0 2px rgba(37,99,235,.18); }
+    /* ── 슬롯 드롭다운 ── */
+    .date-group { margin-bottom: 8px; }
+    .date-dropdown-btn {
+      width: 100%; display: flex; align-items: center; justify-content: space-between;
+      padding: 10px 12px; border: 1.5px solid var(--bdr); border-radius: 8px;
+      background: #fff; cursor: pointer; font-family: inherit; font-size: 13px;
+      font-weight: 600; color: var(--tx); transition: all .18s;
+    }
+    .date-dropdown-btn:hover { border-color: var(--acc2); background: var(--alit); }
+    .date-dropdown-btn.open { border-color: var(--acc2); border-bottom-left-radius: 0; border-bottom-right-radius: 0; background: var(--alit); }
+    .date-dropdown-btn.has-selection { border-color: var(--ok); background: var(--okbg); color: var(--ok); }
+    .date-dropdown-arrow { font-size: 10px; transition: transform .2s; }
+    .date-dropdown-btn.open .date-dropdown-arrow { transform: rotate(180deg); }
+    .slot-dropdown-panel {
+      display: none; border: 1.5px solid var(--acc2); border-top: none;
+      border-bottom-left-radius: 8px; border-bottom-right-radius: 8px;
+      overflow: hidden; margin-bottom: 2px;
+    }
+    .slot-dropdown-panel.open { display: block; }
+    .slot-item {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 10px 12px; border-bottom: 1px solid var(--bdr);
+      cursor: pointer; background: #fff; transition: all .15s;
+      font-family: inherit; width: 100%; text-align: left; border-left: none; border-right: none; border-top: none;
+    }
+    .slot-item:last-child { border-bottom: none; }
+    .slot-item:hover:not(:disabled) { background: var(--alit); }
+    .slot-item.selected { background: var(--alit); }
     .slot-item:disabled { opacity: .45; cursor: not-allowed; background: #f8f9fb; }
     .slot-time { font-size: 14px; font-weight: 600; color: var(--tx); }
     .slot-remain { font-size: 12px; font-weight: 600; padding: 3px 9px; border-radius: 20px; }
@@ -371,7 +393,7 @@
       renderSlotsForProf(prof);
     }
 
-    // ── 슬롯 렌더 + 실시간 리스너 ───────────────────
+    // ── 슬롯 렌더 + 실시간 리스너 (드롭다운) ──────────
     function renderSlotsForProf(prof) {
       const container = document.getElementById('slots-' + prof);
       if (!container) return;
@@ -388,9 +410,18 @@
         const group = dateMap[date];
         const groupEl = document.createElement('div');
         groupEl.className = 'date-group';
-        groupEl.innerHTML = `<div class="date-label">📅 ${group.label}</div>`;
-        const list = document.createElement('div');
-        list.className = 'slot-list';
+
+        // 드롭다운 버튼
+        const dropBtn = document.createElement('button');
+        dropBtn.className = 'date-dropdown-btn';
+        dropBtn.id = `dropbtn-${prof}-${date}`;
+        dropBtn.innerHTML = `<span>📅 ${group.label}</span><span class="date-dropdown-arrow">▼</span>`;
+        dropBtn.onclick = () => toggleDropdown(prof, date);
+
+        // 드롭다운 패널
+        const panel = document.createElement('div');
+        panel.className = 'slot-dropdown-panel';
+        panel.id = `droppanel-${prof}-${date}`;
 
         group.slots.forEach(slot => {
           const slotId = makeSlotId(prof, slot.date, slot.time);
@@ -399,22 +430,52 @@
           itemEl.id = 'slot-' + slotId;
           itemEl.setAttribute('data-slotid', slotId);
           itemEl.setAttribute('data-prof', prof);
+          itemEl.setAttribute('data-date', date);
           itemEl.disabled = true;
           itemEl.innerHTML = `<span class="slot-time">⏰ ${slot.time}</span><span class="slot-remain" id="remain-${slotId}">확인 중…</span>`;
-          itemEl.onclick = () => selectSlot(prof, slotId, `${slot.dateLabel} ${slot.time}`);
-          list.appendChild(itemEl);
+          itemEl.onclick = () => {
+            selectSlot(prof, slotId, `${slot.dateLabel} ${slot.time}`);
+            // 선택 후 드롭다운 닫기
+            closeDropdown(prof, date);
+            // 날짜 버튼에 선택 표시
+            updateDateBtnLabel(prof, date, slot.time);
+          };
+          panel.appendChild(itemEl);
 
           const unsub = db.collection('bookings')
-            .where('slotId', '==', slotId)
-            .where('status', '==', 'confirmed')
+            .where('slotId', '==', slotId).where('status', '==', 'confirmed')
             .onSnapshot(snapshot => updateSlotUI(prof, slotId, MAX_PER_SLOT - snapshot.size),
               err => console.error('슬롯 리스너 오류:', err));
           slotListeners[prof].push(unsub);
         });
 
-        groupEl.appendChild(list);
+        groupEl.appendChild(dropBtn);
+        groupEl.appendChild(panel);
         container.appendChild(groupEl);
       });
+    }
+
+    function toggleDropdown(prof, date) {
+      const btn   = document.getElementById(`dropbtn-${prof}-${date}`);
+      const panel = document.getElementById(`droppanel-${prof}-${date}`);
+      const isOpen = panel.classList.contains('open');
+      // 같은 교수 내 다른 날짜 모두 닫기
+      document.querySelectorAll(`[id^="droppanel-${prof}-"]`).forEach(p => { p.classList.remove('open'); });
+      document.querySelectorAll(`[id^="dropbtn-${prof}-"]`).forEach(b => { b.classList.remove('open'); });
+      if (!isOpen) { panel.classList.add('open'); btn.classList.add('open'); }
+    }
+
+    function closeDropdown(prof, date) {
+      document.getElementById(`droppanel-${prof}-${date}`)?.classList.remove('open');
+      document.getElementById(`dropbtn-${prof}-${date}`)?.classList.remove('open');
+    }
+
+    function updateDateBtnLabel(prof, date, time) {
+      const btn = document.getElementById(`dropbtn-${prof}-${date}`);
+      if (!btn) return;
+      const dateLabel = SLOT_DATA.find(s => s.date === date)?.dateLabel || date;
+      btn.innerHTML = `<span>✅ ${dateLabel} · ${time}</span><span class="date-dropdown-arrow">▼</span>`;
+      btn.classList.add('has-selection');
     }
 
     // ── 슬롯 UI 업데이트 ─────────────────────────────
@@ -440,6 +501,10 @@
         const ex = existingByProf[prof];
         if (ex && ex.slotId === slotId && !selectedItems[prof]?.slotId) {
           selectSlot(prof, slotId, ex.slotLabel);
+          // 날짜 버튼 라벨 업데이트
+          const slotDate = slotId.split('_')[1]; // "2026-05-18" 형태
+          const slotTime = ex.slotLabel.split(' ').slice(-1)[0]; // "09:00~09:30"
+          updateDateBtnLabel(prof, slotDate, slotTime);
         }
       }
     }
