@@ -324,11 +324,6 @@
           <option value="2026-05-20">5월 20일(수)</option>
           <option value="2026-05-22">5월 22일(금)</option>
         </select>
-        <select id="filterStatus" onchange="applyFilter()">
-          <option value="">전체 상태</option>
-          <option value="confirmed">확정</option>
-          <option value="cancelled">취소</option>
-        </select>
         <input type="text" id="filterSearch" placeholder="이름 / 학번 검색" oninput="applyFilter()" style="min-width:140px;" />
         <button class="btn-export" onclick="exportExcel()">⬇ 엑셀 다운로드</button>
       </div>
@@ -345,12 +340,10 @@
               <th>일시</th>
               <th>장소</th>
               <th>신청일시</th>
-              <th>상태</th>
-              <th>처리</th>
             </tr>
           </thead>
           <tbody id="bookingsTbody">
-            <tr class="loading-row"><td colspan="10">로딩 중…</td></tr>
+            <tr class="loading-row"><td colspan="8">로딩 중…</td></tr>
           </tbody>
         </table>
       </div>
@@ -522,13 +515,12 @@
     function applyFilter() {
       const fProf   = document.getElementById('filterProf').value;
       const fDate   = document.getElementById('filterDate').value;
-      const fStatus = document.getElementById('filterStatus').value;
       const fSearch = document.getElementById('filterSearch').value.trim().toLowerCase();
 
       let filtered = allBookings.filter(b => {
+        if (b.status === 'cancelled') return false;
         if (fProf   && b.professor !== fProf) return false;
         if (fDate   && !(b.slotId || '').includes(fDate.replace(/-/g, ''))) return false;
-        if (fStatus && b.status !== fStatus) return false;
         if (fSearch && !b.name.toLowerCase().includes(fSearch) && !String(b.studentId).includes(fSearch)) return false;
         return true;
       });
@@ -539,7 +531,7 @@
     function renderTable(data) {
       const tbody = document.getElementById('bookingsTbody');
       if (data.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="10" class="empty-state">예약 내역이 없습니다.</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="8" class="empty-state">예약 내역이 없습니다.</td></tr>';
         return;
       }
       tbody.innerHTML = data.map((b, i) => {
@@ -552,7 +544,7 @@
         const cancelBtn = b.status !== 'cancelled'
           ? `<button class="btn-cancel" onclick="cancelBooking('${b.id}','${b.name}')">취소</button>`
           : '-';
-        return `<tr>
+          return `<tr>
           <td>${i + 1}</td>
           <td><strong>${b.name}</strong></td>
           <td>${b.studentId}</td>
@@ -561,8 +553,6 @@
           <td style="white-space:nowrap;">${b.slotLabel || '-'}</td>
           <td style="font-size:12px;color:var(--tx2);">${b.location || '-'}</td>
           <td style="white-space:nowrap;font-size:12px;color:var(--tx2);">${createdAt}</td>
-          <td>${status}</td>
-          <td>${cancelBtn}</td>
         </tr>`;
       }).join('');
     }
