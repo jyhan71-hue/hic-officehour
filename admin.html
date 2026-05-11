@@ -308,6 +308,7 @@
     <div class="tab-bar">
       <button class="tab active" onclick="showTab('bookings')">📋 예약 목록</button>
       <button class="tab" onclick="showTab('slots')">🗓 슬롯 현황</button>
+      <button class="tab" onclick="showTab('settings')">⚙️ 신청기간 설정</button>
     </div>
 
     <!-- ── 예약 목록 탭 ── -->
@@ -371,6 +372,42 @@
         <p class="empty-state">로딩 중…</p>
       </div>
     </div>
+
+    <!-- ── 신청기간 설정 탭 ── -->
+    <div id="tab-settings" style="display:none;">
+      <div style="max-width:480px;">
+        <div style="background:var(--sur);border:1px solid var(--bdr);border-radius:var(--r);padding:24px;box-shadow:var(--sh);">
+          <div style="font-size:14px;font-weight:700;color:var(--acc);margin-bottom:20px;">📅 신청기간 설정</div>
+
+          <div style="margin-bottom:16px;">
+            <label style="display:block;font-size:12px;font-weight:600;color:var(--tx2);margin-bottom:6px;">신청 시작 일시</label>
+            <input type="datetime-local" id="settingStart"
+              style="width:100%;padding:10px 12px;border:1.5px solid var(--bdr);border-radius:8px;font-size:14px;font-family:inherit;color:var(--tx);" />
+          </div>
+
+          <div style="margin-bottom:24px;">
+            <label style="display:block;font-size:12px;font-weight:600;color:var(--tx2);margin-bottom:6px;">신청 마감 일시</label>
+            <input type="datetime-local" id="settingEnd"
+              style="width:100%;padding:10px 12px;border:1.5px solid var(--bdr);border-radius:8px;font-size:14px;font-family:inherit;color:var(--tx);" />
+          </div>
+
+          <!-- 현재 설정 표시 -->
+          <div id="currentPeriod" style="background:var(--alit);border:1px solid #bfdbfe;border-radius:8px;padding:12px 14px;font-size:13px;color:#1e40af;margin-bottom:16px;">
+            로딩 중…
+          </div>
+
+          <button onclick="savePeriod()"
+            style="width:100%;padding:12px;background:var(--acc2);color:#fff;border:none;border-radius:8px;font-size:14px;font-weight:700;font-family:inherit;cursor:pointer;">
+            저장하기
+          </button>
+        </div>
+
+        <div style="margin-top:12px;font-size:12px;color:var(--tx3);line-height:1.7;">
+          💡 저장 즉시 예약 페이지에 반영됩니다.<br>
+          신청 기간 외에는 학생이 예약 폼을 볼 수 없습니다.
+        </div>
+      </div>
+    </div>
   </div>
 
   <div id="toast"></div>
@@ -388,13 +425,14 @@
     // 탭 전환
     // ──────────────────────────────────────────────
     function showTab(name) {
-      ['bookings', 'slots'].forEach(t => {
+      ['bookings', 'slots', 'settings'].forEach(t => {
         document.getElementById('tab-' + t).style.display = (t === name) ? 'block' : 'none';
       });
       document.querySelectorAll('.tab').forEach((el, i) => {
-        el.classList.toggle('active', ['bookings', 'slots'][i] === name);
+        el.classList.toggle('active', ['bookings', 'slots', 'settings'][i] === name);
       });
       if (name === 'slots') renderSlotStatus();
+      if (name === 'settings') loadPeriod();
     }
 
     // ──────────────────────────────────────────────
@@ -608,6 +646,59 @@
       a.click();
       URL.revokeObjectURL(url);
       showToast('CSV 파일이 다운로드되었습니다.');
+    }
+
+    // ──────────────────────────────────────────────
+    // 신청기간 로드
+    // ──────────────────────────────────────────────
+    async function loadPeriod() {
+      const el = document.getElementById('currentPeriod');
+      try {
+        const doc = await db.collection('settings').doc('registration').get();
+        if (doc.exists) {
+          const d = doc.data();
+          const start = d.start || '';
+          const end   = d.end   || '';
+          // datetime-local 입력 필드에 세팅 ("YYYY-MM-DDTHH:MM" 형식)
+          document.getElementById('settingStart').value = start.replace(' ', 'T');
+          document.getElementById('settingEnd').value   = end.replace(' ', 'T');
+          el.innerHTML = `<strong>현재 설정</strong><br>시작: ${start}<br>마감: ${end}`;
+        } else {
+          el.textContent = '설정된 신청기간이 없습니다.';
+        }
+      } catch(e) {
+        el.textContent = '로딩 오류: ' + e.message;
+      }
+    }
+
+    // ──────────────────────────────────────────────
+    // 신청기간 저장
+    // ──────────────────────────────────────────────
+    async function savePeriod() {
+      const startRaw = document.getElementById('settingStart').value; // "YYYY-MM-DDTHH:MM"
+      const endRaw   = document.getElementById('settingEnd').value;
+
+      if (!startRaw || !endRaw) {
+        showToast('시작 일시와 마감 일시를 모두 입력해 주세요.', true);
+        return;
+      }
+      if (startRaw >= endRaw) {
+        showToast('마감 일시는 시작 일시보다 늦어야 합니다.', true);
+        return;
+      }
+
+      // "YYYY-MM-DDTHH:MM" → "YYYY-MM-DD HH:MM" 으로 변환해서 저장
+      const start = startRaw.replace('T', ' ');
+      const end   = endRaw.replace('T', ' ');
+
+      try {
+        await db.collection('settings').doc('registration').set({ start, end });
+        showToast('신청기간이 저장되었습니다.');
+        document.getElementById('currentPeriod').innerHTML =
+          `<strong>현재 설정</strong><br>시작: ${start}<br>마감: ${end}`;
+      } catch(e) {
+        showToast('저장 오류: ' + e.message, true);
+      }
     }
 
     // ──────────────────────────────────────────────
