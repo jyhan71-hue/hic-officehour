@@ -167,7 +167,7 @@
     /* ── 교수 선택 버튼 그리드 ──────────────────────── */
     .prof-grid {
       display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+      grid-template-columns: repeat(auto-fill, minmax(155px, 1fr));
       gap: 8px;
     }
     .prof-btn {
@@ -186,8 +186,9 @@
       background: var(--alit);
       box-shadow: 0 0 0 2px rgba(37,99,235,.2);
     }
-    .prof-btn .name { font-size: 14px; font-weight: 600; color: var(--tx); }
-    .prof-btn .loc { font-size: 10px; color: var(--tx2); margin-top: 3px; line-height: 1.4; }
+    .prof-btn .name { font-size: 14px; font-weight: 700; color: var(--tx); }
+    .prof-btn .prof-name { font-size: 12px; font-weight: 500; color: var(--tx2); margin-top: 3px; }
+    .prof-btn .loc { font-size: 10px; color: var(--tx3); margin-top: 2px; line-height: 1.4; }
 
     /* ── 슬롯 선택 ─────────────────────────────────── */
     .date-group { margin-bottom: 16px; }
@@ -362,7 +363,8 @@
     <!-- 안내 배너 -->
     <div class="info-banner">
       <strong>📅 2026 HIC Majors Fair</strong> 당일 부스 상담을 이용하지 못한 학생들을 위한 추가 상담 기회입니다.<br>
-      운영 기간 <strong>5월 18일(월) ~ 5월 22일(금)</strong> · 슬롯당 최대 5명 선착순
+      운영 기간 <strong>5월 18일(월) ~ 5월 22일(금)</strong> · 슬롯당 최대 5명 선착순<br>
+      <span style="color:#d97706;font-weight:600;">⚠️ 본 오피스 아워는 GCA 가산점이 제공되지 않습니다.</span>
     </div>
 
     <!-- STEP 1: 학생 정보 -->
@@ -459,14 +461,31 @@
     // ──────────────────────────────────────────────
     // 교수 버튼 렌더링
     // ──────────────────────────────────────────────
+    const PROFESSOR_TRACKS = {
+      "정문석": "미래반도체공학",
+      "정승준": "융합의과학 / 융합의공학",
+      "이현주": "인지융합과학",
+      "김진수": "미래사회디자인",
+      "권규현": "혁신공학경영"
+    };
+
+    // 트랙명 기준 정렬 순서
+    const TRACK_ORDER = ["미래반도체공학", "융합의과학 / 융합의공학", "인지융합과학", "미래사회디자인", "혁신공학경영"];
+
     function renderProfGrid() {
       const grid = document.getElementById('profGrid');
       grid.innerHTML = '';
-      ALL_PROFESSORS.forEach(prof => {
+      const sorted = [...ALL_PROFESSORS].sort((a, b) => {
+        return TRACK_ORDER.indexOf(PROFESSOR_TRACKS[a]) - TRACK_ORDER.indexOf(PROFESSOR_TRACKS[b]);
+      });
+      sorted.forEach(prof => {
         const btn = document.createElement('button');
         btn.className = 'prof-btn';
         btn.setAttribute('data-prof', prof);
-        btn.innerHTML = `<div class="name">${prof}</div><div class="loc">${PROFESSOR_LOCATIONS[prof] || ''}</div>`;
+        btn.innerHTML = `
+          <div class="name">${PROFESSOR_TRACKS[prof] || prof}</div>
+          <div class="prof-name">👤 ${prof} 교수</div>
+          <div class="loc">📍 ${PROFESSOR_LOCATIONS[prof] || ''}</div>`;
         btn.onclick = () => selectProf(prof);
         grid.appendChild(btn);
       });
