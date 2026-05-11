@@ -620,7 +620,7 @@
     }
 
     // ──────────────────────────────────────────────
-    // 엑셀 다운로드 (프로그램별 시트)
+    // 엑셀 다운로드 (교수님 전달용)
     // ──────────────────────────────────────────────
     function exportExcel() {
       const confirmed = allBookings.filter(b => b.status !== 'cancelled');
@@ -630,14 +630,74 @@
       }
 
       const wb = XLSX.utils.book_new();
+      const trackOrder = ["미래반도체공학","융합의과학 / 융합의공학","인지융합과학","미래사회디자인","혁신공학경영"];
 
-      // ── 1. 전체 현황 시트 ──────────────────────────
-      const allHeaders = ['번호', '프로그램', '교수', '성명', '학번', '이메일', '일시', '장소', '신청일시'];
+      // ── 프로그램별 시트 (교수 전달용) ─────────────
+      trackOrder.forEach(track => {
+        const prof = Object.keys(PROFESSOR_TRACKS).find(p => PROFESSOR_TRACKS[p] === track);
+        if (!prof) return;
+
+        const trackBookings = confirmed.filter(b => b.professor === prof);
+        if (trackBookings.length === 0) return;
+
+        // 해당 교수의 슬롯 목록 (날짜·시간 순)
+        const profSlots = SLOT_DATA
+          .filter(s => s.professors.includes(prof))
+          .sort((a, b) => (a.date + a.time).localeCompare(b.date + b.time));
+
+        const aoa = []; // array of arrays (행 데이터)
+
+        // 시트 제목 행
+        aoa.push([`${track} 오피스 아워 상담 예약 현황`]);
+        aoa.push([`담당 교수: ${prof}  |  장소: ${PROFESSOR_LOCATIONS[prof] || ''}`]);
+        aoa.push([]); // 빈 줄
+
+        profSlots.forEach(slot => {
+          const slotId = makeSlotId(prof, slot.date, slot.time);
+          const slotBookings = trackBookings
+            .filter(b => b.slotId === slotId)
+            .sort((a, b) => (a.createdAt?.toDate?.() || 0) - (b.createdAt?.toDate?.() || 0));
+
+          // 슬롯 헤더
+          aoa.push([`${slot.dateLabel}  ${slot.time}`, '', `${slotBookings.length}/${MAX_PER_SLOT}명`]);
+          // 컬럼 헤더
+          aoa.push(['번호', '성명', '학번', '이메일', '문의 내용']);
+
+          if (slotBookings.length === 0) {
+            aoa.push(['', '(예약 없음)', '', '', '']);
+          } else {
+            slotBookings.forEach((b, i) => {
+              aoa.push([
+                i + 1,
+                b.name,
+                b.studentId,
+                b.email,
+                b.message || ''
+              ]);
+            });
+          }
+          aoa.push([]); // 슬롯 사이 빈 줄
+        });
+
+        const ws = XLSX.utils.aoa_to_sheet(aoa);
+
+        // 열 너비 설정
+        ws['!cols'] = [
+          { wch: 6 },  // 번호
+          { wch: 10 }, // 성명
+          { wch: 13 }, // 학번
+          { wch: 26 }, // 이메일
+          { wch: 40 }, // 문의내용
+        ];
+
+        const sheetName = track.replace(/[:\\\/\?\*\[\]]/g, '').substring(0, 31);
+        XLSX.utils.book_append_sheet(wb, ws, sheetName);
+      });
+
+      // ── 전체 현황 시트 (관리자용) ─────────────────
       const allRows = confirmed
         .slice()
         .sort((a, b) => {
-          // 프로그램 → 슬롯 순 정렬
-          const trackOrder = ["미래반도체공학","융합의과학 / 융합의공학","인지융합과학","미래사회디자인","혁신공학경영"];
           const ta = trackOrder.indexOf(PROFESSOR_TRACKS[a.professor] || '');
           const tb = trackOrder.indexOf(PROFESSOR_TRACKS[b.professor] || '');
           if (ta !== tb) return ta - tb;
@@ -647,78 +707,20 @@
           '번호': i + 1,
           '프로그램': PROFESSOR_TRACKS[b.professor] || b.professor,
           '교수': b.professor,
+          '일시': b.slotLabel || '',
           '성명': b.name,
           '학번': b.studentId,
           '이메일': b.email,
-          '일시': b.slotLabel || '',
           '장소': b.location || '',
+          '문의내용': b.message || '',
           '신청일시': b.createdAt
             ? (b.createdAt.toDate ? b.createdAt.toDate() : new Date(b.createdAt)).toLocaleString('ko-KR')
             : ''
         }));
 
-      const wsAll = XLSX.utils.json_to_sheet(allRows, { header: allHeaders });
-      setColWidths(wsAll, [6, 22, 8, 8, 12, 26, 20, 20, 18]);
-      XLSX.utils.book_append_sheet(wb, wsAll, '전체현황');
-
-      // ── 2. 프로그램별 시트 ─────────────────────────
-      const trackOrder = ["미래반도체공학","융합의과학 / 융합의공학","인지융합과학","미래사회디자인","혁신공학경영"];
-      const profHeaders = ['번호', '일시', '성명', '학번', '이메일', '신청일시'];
-
-      trackOrder.forEach(track => {
-        const prof = Object.keys(PROFESSOR_TRACKS).find(p => PROFESSOR_TRACKS[p] === track);
-        if (!prof) return;
-
-        const trackBookings = confirmed
-          .filter(b => b.professor === prof)
-          .sort((a, b) => (a.slotLabel || '').localeCompare(b.slotLabel || ''));
-
-        if (trackBookings.length === 0) return; // 예약 없는 프로그램은 시트 생략
-
-        const rows = trackBookings.map((b, i) => ({
-          '번호': i + 1,
-          '일시': b.slotLabel || '',
-          '성명': b.name,
-          '학번': b.studentId,
-          '이메일': b.email,
-          '신청일시': b.createdAt
-            ? (b.createdAt.toDate ? b.createdAt.toDate() : new Date(b.createdAt)).toLocaleString('ko-KR')
-            : ''
-        }));
-
-        const ws = XLSX.utils.json_to_sheet(rows, { header: profHeaders });
-        setColWidths(ws, [6, 20, 8, 12, 26, 18]);
-
-        // 시트 이름: 특수문자 제거 후 31자 제한
-        const sheetName = track.replace(/[:\\\/\?\*\[\]]/g, '').substring(0, 31);
-        XLSX.utils.book_append_sheet(wb, ws, sheetName);
-      });
-
-      // ── 3. 슬롯별 현황 시트 ────────────────────────
-      const slotRows = [];
-      trackOrder.forEach(track => {
-        const prof = Object.keys(PROFESSOR_TRACKS).find(p => PROFESSOR_TRACKS[p] === track);
-        if (!prof) return;
-        const profSlots = SLOT_DATA.filter(s => s.professors.includes(prof));
-        profSlots.forEach(slot => {
-          const slotId = makeSlotId(prof, slot.date, slot.time);
-          const count = confirmed.filter(b => b.slotId === slotId).length;
-          slotRows.push({
-            '프로그램': track,
-            '교수': prof,
-            '날짜': slot.dateLabel,
-            '시간': slot.time,
-            '신청인원': count,
-            '최대인원': MAX_PER_SLOT,
-            '잔여': MAX_PER_SLOT - count,
-            '상태': count >= MAX_PER_SLOT ? '마감' : '신청가능'
-          });
-        });
-      });
-
-      const wsSlot = XLSX.utils.json_to_sheet(slotRows);
-      setColWidths(wsSlot, [22, 8, 14, 14, 8, 8, 6, 10]);
-      XLSX.utils.book_append_sheet(wb, wsSlot, '슬롯현황');
+      const wsAll = XLSX.utils.json_to_sheet(allRows);
+      wsAll['!cols'] = [6,18,8,22,8,13,26,20,40,18].map(w => ({ wch: w }));
+      XLSX.utils.book_append_sheet(wb, wsAll, '전체현황(관리자)');
 
       // ── 파일 저장 ──────────────────────────────────
       const today = new Date().toLocaleDateString('ko-KR').replace(/\. /g,'-').replace('.','');
