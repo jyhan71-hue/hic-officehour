@@ -476,6 +476,15 @@
       const dateLabel = SLOT_DATA.find(s => s.date === date)?.dateLabel || date;
       btn.innerHTML = `<span>✅ ${dateLabel} · ${time}</span><span class="date-dropdown-arrow">▼</span>`;
       btn.classList.add('has-selection');
+      btn.classList.remove('open');
+    }
+
+    function resetDateBtnLabel(prof, date) {
+      const btn = document.getElementById(`dropbtn-${prof}-${date}`);
+      if (!btn) return;
+      const dateLabel = SLOT_DATA.find(s => s.date === date)?.dateLabel || date;
+      btn.innerHTML = `<span>📅 ${dateLabel}</span><span class="date-dropdown-arrow">▼</span>`;
+      btn.classList.remove('has-selection');
     }
 
     // ── 슬롯 UI 업데이트 ─────────────────────────────
@@ -512,6 +521,17 @@
     // ── 슬롯 선택 ────────────────────────────────────
     function selectSlot(prof, slotId, label) {
       if (!selectedItems[prof]) return;
+
+      // 기존 선택된 슬롯 UI 해제
+      const prevSlotId = selectedItems[prof].slotId;
+      if (prevSlotId && prevSlotId !== slotId) {
+        const prevEl = document.getElementById('slot-' + prevSlotId);
+        if (prevEl) prevEl.classList.remove('selected');
+        // 기존 날짜 버튼 라벨 원복
+        const prevDate = prevSlotId.split('_')[1];
+        resetDateBtnLabel(prof, prevDate);
+      }
+
       selectedItems[prof].slotId = slotId;
       selectedItems[prof].slotLabel = label;
       clearErr();
