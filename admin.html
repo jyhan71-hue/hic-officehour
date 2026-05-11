@@ -699,8 +699,8 @@
         const ws = XLSX.utils.json_to_sheet(rows, { header: profHeaders });
         setColWidths(ws, [6, 20, 8, 12, 26, 18]);
 
-        // 시트 이름: 트랙명 (엑셀 시트명 31자 제한)
-        const sheetName = track.substring(0, 31);
+        // 시트 이름: 특수문자 제거 후 31자 제한
+        const sheetName = track.replace(/[:\\\/\?\*\[\]]/g, '').substring(0, 31);
         XLSX.utils.book_append_sheet(wb, ws, sheetName);
       });
 
