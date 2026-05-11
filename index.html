@@ -5,401 +5,120 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>HIC 오피스 아워 예약 | 한양인터칼리지</title>
 
-  <!-- Firebase SDK v9 compat -->
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
-
-  <!-- Google Fonts: Noto Sans KR -->
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;600;700&display=swap" rel="stylesheet" />
 
   <style>
-    /* ── 토큰 ──────────────────────────────────────── */
     :root {
-      --bg: #f0f4fa;
-      --sur: #ffffff;
-      --bdr: #dde3ef;
-      --acc: #1b3a6b;      /* HIC 네이비 */
-      --acc2: #2563eb;     /* 버튼 파랑 */
-      --alit: #eff6ff;
-      --ok: #16a34a;
-      --okbg: #f0fdf4;
-      --err: #dc2626;
-      --errbg: #fef2f2;
-      --warn: #d97706;
-      --warnbg: #fffbeb;
-      --tx: #1e293b;
-      --tx2: #64748b;
-      --tx3: #94a3b8;
-      --r: 12px;
-      --sh: 0 2px 8px rgba(0,0,0,.08), 0 1px 2px rgba(0,0,0,.04);
-      --shd: 0 4px 20px rgba(0,0,0,.13);
+      --bg: #f0f4fa; --sur: #ffffff; --bdr: #dde3ef;
+      --acc: #1b3a6b; --acc2: #2563eb; --alit: #eff6ff;
+      --ok: #16a34a; --okbg: #f0fdf4;
+      --err: #dc2626; --errbg: #fef2f2;
+      --warn: #d97706; --warnbg: #fffbeb;
+      --tx: #1e293b; --tx2: #64748b; --tx3: #94a3b8;
+      --r: 12px; --sh: 0 2px 8px rgba(0,0,0,.08), 0 1px 2px rgba(0,0,0,.04);
     }
-
-    /* ── 리셋 ──────────────────────────────────────── */
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-    body {
-      font-family: 'Noto Sans KR', -apple-system, BlinkMacSystemFont, sans-serif;
-      background: var(--bg);
-      color: var(--tx);
-      line-height: 1.6;
-      min-height: 100vh;
-    }
+    body { font-family: 'Noto Sans KR', -apple-system, sans-serif; background: var(--bg); color: var(--tx); line-height: 1.6; min-height: 100vh; }
 
-    /* ── 헤더 ──────────────────────────────────────── */
-    .header {
-      background: var(--acc);
-      color: #fff;
-      padding: 0 20px;
-    }
-    .header-inner {
-      max-width: 680px;
-      margin: 0 auto;
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      height: 58px;
-    }
-    .header-logo {
-      font-size: 11px;
-      font-weight: 700;
-      letter-spacing: .08em;
-      opacity: .7;
-      text-transform: uppercase;
-    }
+    .header { background: var(--acc); color: #fff; padding: 0 20px; }
+    .header-inner { max-width: 680px; margin: 0 auto; display: flex; align-items: center; gap: 12px; height: 58px; }
+    .header-logo { font-size: 11px; font-weight: 700; letter-spacing: .08em; opacity: .7; text-transform: uppercase; }
     .header-sep { width: 1px; height: 20px; background: rgba(255,255,255,.25); }
     .header-title { font-size: 15px; font-weight: 600; }
 
-    /* ── 메인 래퍼 ─────────────────────────────────── */
-    .wrap {
-      max-width: 680px;
-      margin: 0 auto;
-      padding: 24px 20px 60px;
-    }
+    .wrap { max-width: 680px; margin: 0 auto; padding: 24px 20px 60px; }
 
-    /* ── 안내 배너 ─────────────────────────────────── */
-    .info-banner {
-      background: var(--alit);
-      border: 1px solid #bfdbfe;
-      border-radius: var(--r);
-      padding: 14px 16px;
-      margin-bottom: 20px;
-      font-size: 13px;
-      color: #1e40af;
-      line-height: 1.7;
-    }
+    .info-banner { background: var(--alit); border: 1px solid #bfdbfe; border-radius: var(--r); padding: 14px 16px; margin-bottom: 20px; font-size: 13px; color: #1e40af; line-height: 1.7; }
     .info-banner strong { font-weight: 700; }
 
-    /* ── 카드 ──────────────────────────────────────── */
-    .card {
-      background: var(--sur);
-      border: 1px solid var(--bdr);
-      border-radius: var(--r);
-      padding: 22px 20px;
-      margin-bottom: 16px;
-      box-shadow: var(--sh);
-    }
-    .card-title {
-      font-size: 13px;
-      font-weight: 700;
-      color: var(--acc);
-      letter-spacing: .04em;
-      text-transform: uppercase;
-      margin-bottom: 14px;
-      display: flex;
-      align-items: center;
-      gap: 6px;
-    }
-    .card-title-num {
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      width: 20px; height: 20px;
-      background: var(--acc);
-      color: #fff;
-      border-radius: 50%;
-      font-size: 11px;
-      font-weight: 700;
-    }
+    .card { background: var(--sur); border: 1px solid var(--bdr); border-radius: var(--r); padding: 22px 20px; margin-bottom: 16px; box-shadow: var(--sh); }
+    .card-title { font-size: 13px; font-weight: 700; color: var(--acc); letter-spacing: .04em; text-transform: uppercase; margin-bottom: 14px; display: flex; align-items: center; gap: 6px; }
+    .card-title-num { display: inline-flex; align-items: center; justify-content: center; width: 20px; height: 20px; background: var(--acc); color: #fff; border-radius: 50%; font-size: 11px; font-weight: 700; }
 
-    /* ── 폼 요소 ────────────────────────────────────── */
     .form-row { margin-bottom: 14px; }
     .form-row:last-child { margin-bottom: 0; }
-    label {
-      display: block;
-      font-size: 12px;
-      font-weight: 600;
-      color: var(--tx2);
-      margin-bottom: 5px;
-    }
+    label { display: block; font-size: 12px; font-weight: 600; color: var(--tx2); margin-bottom: 5px; }
     label .req { color: var(--err); margin-left: 2px; }
-    input[type="text"],
-    input[type="email"],
-    select,
-    textarea {
-      width: 100%;
-      padding: 10px 12px;
-      border: 1.5px solid var(--bdr);
-      border-radius: 8px;
-      font-size: 14px;
-      font-family: inherit;
-      color: var(--tx);
-      background: #fff;
-      transition: border-color .2s;
-      -webkit-appearance: none;
-      appearance: none;
-    }
-    input:focus, select:focus, textarea:focus {
-      outline: none;
-      border-color: var(--acc2);
-      box-shadow: 0 0 0 3px rgba(37,99,235,.12);
-    }
+    input[type="text"], textarea { width: 100%; padding: 10px 12px; border: 1.5px solid var(--bdr); border-radius: 8px; font-size: 14px; font-family: inherit; color: var(--tx); background: #fff; transition: border-color .2s; }
+    input:focus, textarea:focus { outline: none; border-color: var(--acc2); box-shadow: 0 0 0 3px rgba(37,99,235,.12); }
     input::placeholder, textarea::placeholder { color: var(--tx3); }
-    select {
-      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath fill='%2394a3b8' d='M1 1l5 5 5-5'/%3E%3C/svg%3E");
-      background-repeat: no-repeat;
-      background-position: right 12px center;
-      padding-right: 32px;
-    }
-    textarea { resize: vertical; min-height: 90px; }
+    textarea { resize: vertical; min-height: 80px; }
 
-    /* ── 이메일 ID + 도메인 입력 ────────────────────── */
-    .email-wrap {
-      display: flex;
-      align-items: center;
-      border: 1.5px solid var(--bdr);
-      border-radius: 8px;
-      overflow: hidden;
-      background: #fff;
-      transition: border-color .2s;
-    }
-    .email-wrap:focus-within {
-      border-color: var(--acc2);
-      box-shadow: 0 0 0 3px rgba(37,99,235,.12);
-    }
-    .email-wrap input {
-      border: none !important;
-      box-shadow: none !important;
-      border-radius: 0 !important;
-      flex: 1;
-      min-width: 0;
-    }
+    .email-wrap { display: flex; align-items: center; border: 1.5px solid var(--bdr); border-radius: 8px; overflow: hidden; background: #fff; transition: border-color .2s; }
+    .email-wrap:focus-within { border-color: var(--acc2); box-shadow: 0 0 0 3px rgba(37,99,235,.12); }
+    .email-wrap input { border: none !important; box-shadow: none !important; border-radius: 0 !important; flex: 1; min-width: 0; }
     .email-wrap input:focus { box-shadow: none !important; }
-    .email-domain {
-      padding: 0 12px;
-      font-size: 14px;
-      color: var(--tx2);
-      background: #f8faff;
-      border-left: 1.5px solid var(--bdr);
-      height: 42px;
-      display: flex;
-      align-items: center;
-      white-space: nowrap;
-      font-weight: 500;
-    }
-    /* ── 교수 선택 버튼 그리드 ──────────────────────── */
-    .prof-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(155px, 1fr));
-      gap: 8px;
-    }
-    .prof-btn {
-      border: 1.5px solid var(--bdr);
-      border-radius: 8px;
-      padding: 10px 8px;
-      background: #fff;
-      cursor: pointer;
-      text-align: center;
-      transition: all .18s;
-      font-family: inherit;
-    }
+    .email-domain { padding: 0 12px; font-size: 14px; color: var(--tx2); background: #f8faff; border-left: 1.5px solid var(--bdr); height: 42px; display: flex; align-items: center; white-space: nowrap; font-weight: 500; }
+
+    .btn-lookup { width: 100%; margin-top: 14px; padding: 11px; background: var(--acc); color: #fff; border: none; border-radius: 8px; font-size: 14px; font-weight: 700; font-family: inherit; cursor: pointer; transition: background .18s; display: flex; align-items: center; justify-content: center; gap: 8px; }
+    .btn-lookup:hover { background: #152d56; }
+
+    .existing-banner { background: var(--okbg); border: 1px solid #86efac; border-radius: 10px; padding: 14px 16px; margin-bottom: 16px; font-size: 13px; color: #14532d; }
+    .existing-banner .ex-title { font-weight: 700; margin-bottom: 8px; font-size: 14px; }
+    .existing-item { padding: 7px 0; border-bottom: 1px solid #bbf7d0; display: flex; justify-content: space-between; align-items: center; }
+    .existing-item:last-child { border-bottom: none; }
+
+    .prof-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(155px, 1fr)); gap: 8px; }
+    .prof-btn { border: 1.5px solid var(--bdr); border-radius: 8px; padding: 10px 8px; background: #fff; cursor: pointer; text-align: center; transition: all .18s; font-family: inherit; }
     .prof-btn:hover { border-color: var(--acc2); background: var(--alit); }
-    .prof-btn.selected {
-      border-color: var(--acc2);
-      background: var(--alit);
-      box-shadow: 0 0 0 2px rgba(37,99,235,.2);
-    }
-    .prof-btn .name { font-size: 14px; font-weight: 700; color: var(--tx); }
-    .prof-btn .prof-name { font-size: 12px; font-weight: 500; color: var(--tx2); margin-top: 3px; }
+    .prof-btn.selected { border-color: var(--acc2); background: var(--alit); box-shadow: 0 0 0 2px rgba(37,99,235,.2); }
+    .prof-btn .name { font-size: 13px; font-weight: 700; color: var(--tx); }
+    .prof-btn .prof-name { font-size: 11px; font-weight: 500; color: var(--tx2); margin-top: 3px; }
     .prof-btn .loc { font-size: 10px; color: var(--tx3); margin-top: 2px; line-height: 1.4; }
 
-    /* ── 슬롯 선택 ─────────────────────────────────── */
-    .date-group { margin-bottom: 16px; }
-    .date-label {
-      font-size: 12px;
-      font-weight: 700;
-      color: var(--tx2);
-      text-transform: uppercase;
-      letter-spacing: .05em;
-      padding: 6px 0;
-      border-bottom: 1px solid var(--bdr);
-      margin-bottom: 8px;
-    }
+    .date-group { margin-bottom: 14px; }
+    .date-label { font-size: 12px; font-weight: 700; color: var(--tx2); padding: 6px 0; border-bottom: 1px solid var(--bdr); margin-bottom: 8px; }
     .slot-list { display: flex; flex-direction: column; gap: 6px; }
-    .slot-item {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      padding: 10px 12px;
-      border: 1.5px solid var(--bdr);
-      border-radius: 8px;
-      cursor: pointer;
-      background: #fff;
-      transition: all .18s;
-      font-family: inherit;
-      width: 100%;
-      text-align: left;
-    }
+    .slot-item { display: flex; align-items: center; justify-content: space-between; padding: 10px 12px; border: 1.5px solid var(--bdr); border-radius: 8px; cursor: pointer; background: #fff; transition: all .18s; font-family: inherit; width: 100%; text-align: left; }
     .slot-item:hover:not(:disabled) { border-color: var(--acc2); background: var(--alit); }
-    .slot-item.selected {
-      border-color: var(--acc2);
-      background: var(--alit);
-      box-shadow: 0 0 0 2px rgba(37,99,235,.18);
-    }
-    .slot-item:disabled {
-      opacity: .45;
-      cursor: not-allowed;
-      background: #f8f9fb;
-    }
+    .slot-item.selected { border-color: var(--acc2); background: var(--alit); box-shadow: 0 0 0 2px rgba(37,99,235,.18); }
+    .slot-item:disabled { opacity: .45; cursor: not-allowed; background: #f8f9fb; }
     .slot-time { font-size: 14px; font-weight: 600; color: var(--tx); }
-    .slot-remain {
-      font-size: 12px;
-      font-weight: 600;
-      padding: 3px 9px;
-      border-radius: 20px;
-    }
+    .slot-remain { font-size: 12px; font-weight: 600; padding: 3px 9px; border-radius: 20px; }
     .slot-remain.full { background: #fee2e2; color: var(--err); }
     .slot-remain.low  { background: var(--warnbg); color: var(--warn); }
     .slot-remain.ok   { background: var(--okbg); color: var(--ok); }
 
-    /* ── 선택된 프로그램 슬롯 섹션 ─────────────────── */
-    .prof-slot-section {
-      border: 1.5px solid var(--bdr);
-      border-radius: 10px;
-      margin-bottom: 12px;
-      overflow: hidden;
-    }
-    .prof-slot-header {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      padding: 10px 14px;
-      background: var(--alit);
-      border-bottom: 1px solid var(--bdr);
-    }
+    .prof-slot-section { border: 1.5px solid var(--bdr); border-radius: 10px; margin-bottom: 12px; overflow: hidden; background: var(--sur); box-shadow: var(--sh); }
+    .prof-slot-header { display: flex; align-items: center; justify-content: space-between; padding: 10px 14px; background: var(--alit); border-bottom: 1px solid var(--bdr); }
     .prof-slot-header-left { font-size: 13px; font-weight: 700; color: var(--acc); }
     .prof-slot-header-sub  { font-size: 11px; color: var(--tx2); margin-top: 2px; }
-    .btn-remove-prof {
-      border: none; background: none; cursor: pointer;
-      color: var(--tx3); font-size: 18px; line-height: 1;
-      padding: 2px 6px; border-radius: 4px;
-      transition: color .15s, background .15s;
-    }
+    .btn-remove-prof { border: none; background: none; cursor: pointer; color: var(--tx3); font-size: 18px; line-height: 1; padding: 2px 6px; border-radius: 4px; transition: color .15s, background .15s; }
     .btn-remove-prof:hover { color: var(--err); background: var(--errbg); }
-    .prof-slot-body { padding: 12px 14px; }
+    .prof-slot-body { padding: 14px; }
+    .message-row { margin-top: 14px; padding-top: 14px; border-top: 1px solid var(--bdr); }
 
-    /* ── 제출 버튼 ─────────────────────────────────── */
-    .btn-submit {
-      width: 100%;
-      padding: 14px;
-      background: var(--acc2);
-      color: #fff;
-      border: none;
-      border-radius: 10px;
-      font-size: 15px;
-      font-weight: 700;
-      font-family: inherit;
-      cursor: pointer;
-      transition: background .2s, transform .1s;
-      letter-spacing: .02em;
-    }
+    .btn-submit { width: 100%; padding: 14px; background: var(--acc2); color: #fff; border: none; border-radius: 10px; font-size: 15px; font-weight: 700; font-family: inherit; cursor: pointer; transition: background .2s, transform .1s; letter-spacing: .02em; }
     .btn-submit:hover:not(:disabled) { background: #1d4ed8; }
     .btn-submit:active:not(:disabled) { transform: scale(.98); }
     .btn-submit:disabled { opacity: .5; cursor: not-allowed; }
 
-    /* ── 성공 화면 ─────────────────────────────────── */
-    .success-wrap {
-      display: none;
-      text-align: center;
-      padding: 40px 20px 60px;
-    }
-    .success-icon {
-      font-size: 56px;
-      margin-bottom: 16px;
-      animation: pop .4s cubic-bezier(.36,.07,.19,.97);
-    }
-    @keyframes pop {
-      0%   { transform: scale(.4); opacity: 0; }
-      80%  { transform: scale(1.15); }
-      100% { transform: scale(1); opacity: 1; }
-    }
+    .success-wrap { display: none; text-align: center; padding: 40px 20px 60px; }
+    .success-icon { font-size: 56px; margin-bottom: 16px; animation: pop .4s cubic-bezier(.36,.07,.19,.97); }
+    @keyframes pop { 0% { transform: scale(.4); opacity: 0; } 80% { transform: scale(1.15); } 100% { transform: scale(1); opacity: 1; } }
     .success-title { font-size: 22px; font-weight: 700; color: var(--acc); margin-bottom: 8px; }
     .success-sub { font-size: 14px; color: var(--tx2); line-height: 1.7; }
-    .success-card {
-      background: var(--sur);
-      border: 1px solid var(--bdr);
-      border-radius: var(--r);
-      padding: 18px 20px;
-      margin: 20px auto;
-      max-width: 400px;
-      text-align: left;
-    }
+    .success-card { background: var(--sur); border: 1px solid var(--bdr); border-radius: var(--r); padding: 18px 20px; margin: 20px auto; max-width: 440px; text-align: left; }
     .success-row { display: flex; justify-content: space-between; padding: 6px 0; font-size: 13px; border-bottom: 1px solid var(--bdr); }
     .success-row:last-child { border-bottom: none; }
     .success-row .sk { color: var(--tx2); }
     .success-row .sv { font-weight: 600; color: var(--tx); }
-    .btn-again {
-      margin-top: 16px;
-      padding: 11px 28px;
-      border: 1.5px solid var(--acc2);
-      background: #fff;
-      color: var(--acc2);
-      border-radius: 8px;
-      font-size: 14px;
-      font-weight: 600;
-      font-family: inherit;
-      cursor: pointer;
-      transition: background .18s;
-    }
+    .btn-again { margin-top: 16px; padding: 11px 28px; border: 1.5px solid var(--acc2); background: #fff; color: var(--acc2); border-radius: 8px; font-size: 14px; font-weight: 600; font-family: inherit; cursor: pointer; transition: background .18s; }
     .btn-again:hover { background: var(--alit); }
 
-    /* ── 에러 메시지 ────────────────────────────────── */
-    .err-msg {
-      display: none;
-      background: var(--errbg);
-      border: 1px solid #fca5a5;
-      border-radius: 8px;
-      padding: 10px 14px;
-      font-size: 13px;
-      color: var(--err);
-      margin-bottom: 12px;
-    }
+    .err-msg { display: none; background: var(--errbg); border: 1px solid #fca5a5; border-radius: 8px; padding: 10px 14px; font-size: 13px; color: var(--err); margin-bottom: 12px; }
     .err-msg.show { display: block; }
 
-    /* ── 로딩 스피너 ────────────────────────────────── */
-    .spinner {
-      display: none;
-      width: 20px; height: 20px;
-      border: 2.5px solid rgba(255,255,255,.4);
-      border-top-color: #fff;
-      border-radius: 50%;
-      animation: spin .7s linear infinite;
-      margin: 0 auto;
-    }
+    .spinner { display: none; width: 18px; height: 18px; border: 2.5px solid rgba(255,255,255,.4); border-top-color: #fff; border-radius: 50%; animation: spin .7s linear infinite; }
     @keyframes spin { to { transform: rotate(360deg); } }
 
-    /* ── 섹션 잠금 (비활성화) ──────────────────────── */
     .locked { opacity: .35; pointer-events: none; }
+    .hint { font-size: 12px; color: var(--tx3); margin-top: 4px; }
 
-    /* ── 힌트 텍스트 ────────────────────────────────── */
-    .hint {
-      font-size: 12px;
-      color: var(--tx3);
-      margin-top: 4px;
-    }
-
-    /* ── 모바일 ─────────────────────────────────────── */
     @media (max-width: 480px) {
       .wrap { padding: 16px 14px 50px; }
       .prof-grid { grid-template-columns: repeat(2, 1fr); }
@@ -409,7 +128,6 @@
 </head>
 
 <body>
-  <!-- 헤더 -->
   <header class="header">
     <div class="header-inner">
       <span class="header-logo">HIC</span>
@@ -418,9 +136,7 @@
     </div>
   </header>
 
-  <!-- ── 신청 폼 ── -->
   <main class="wrap" id="formSection">
-    <!-- 안내 배너 -->
     <div class="info-banner">
       <strong>📅 2026 HIC Majors Fair</strong> 당일 부스 상담을 이용하지 못한 학생들을 위한 추가 상담 기회입니다.<br>
       신청 기간 <strong id="regPeriodText"></strong><br>
@@ -428,76 +144,61 @@
       <span style="color:#d97706;font-weight:600;">⚠️ 본 오피스 아워는 GCA 가산점이 제공되지 않습니다.</span>
     </div>
 
-    <!-- 신청 기간 외 안내 (기간 외일 때만 표시) -->
     <div id="closedBanner" style="display:none;background:#fef2f2;border:1px solid #fca5a5;border-radius:12px;padding:20px;text-align:center;margin-bottom:16px;">
       <div style="font-size:32px;margin-bottom:8px;">🔒</div>
       <div style="font-size:16px;font-weight:700;color:#dc2626;margin-bottom:6px;" id="closedTitle"></div>
       <div style="font-size:13px;color:#64748b;" id="closedDesc"></div>
     </div>
 
-    <!-- 신청 폼 전체 (기간 외일 때 잠금) -->
     <div id="formBody">
 
-    <!-- STEP 1: 학생 정보 -->
-    <div class="card" id="step1">
-      <div class="card-title">
-        <span class="card-title-num">1</span>
-        학생 정보 입력
-      </div>
-      <div class="form-row">
-        <label>성명<span class="req">*</span></label>
-        <input type="text" id="inputName" placeholder="홍길동" autocomplete="name" />
-      </div>
-      <div class="form-row">
-        <label>학번<span class="req">*</span></label>
-        <input type="text" id="inputStudentId" placeholder="2024000000" autocomplete="off" maxlength="10" inputmode="numeric" oninput="this.value=this.value.replace(/[^0-9]/g,'')" />
-      </div>
-      <div class="form-row">
-        <label>한양메일 ID<span class="req">*</span></label>
-        <div class="email-wrap">
-          <input type="text" id="inputEmailId" placeholder="hanyang123" autocomplete="off" />
-          <span class="email-domain">@hanyang.ac.kr</span>
+      <!-- STEP 1 -->
+      <div class="card" id="step1">
+        <div class="card-title"><span class="card-title-num">1</span>학생 정보 입력</div>
+        <div class="form-row">
+          <label>성명<span class="req">*</span></label>
+          <input type="text" id="inputName" placeholder="홍길동" autocomplete="name" />
         </div>
-        <p class="hint" style="margin-top:7px;font-size:13px;color:var(--acc2);font-weight:600;">📧 입력하신 한양메일로 예약 확인 이메일이 발송됩니다.</p>
+        <div class="form-row">
+          <label>학번<span class="req">*</span></label>
+          <input type="text" id="inputStudentId" placeholder="2024000000" autocomplete="off" maxlength="10" inputmode="numeric" oninput="this.value=this.value.replace(/[^0-9]/g,'')" />
+        </div>
+        <div class="form-row">
+          <label>한양메일 ID<span class="req">*</span></label>
+          <div class="email-wrap">
+            <input type="text" id="inputEmailId" placeholder="hanyang123" autocomplete="off" />
+            <span class="email-domain">@hanyang.ac.kr</span>
+          </div>
+          <p class="hint" style="margin-top:7px;font-size:13px;color:var(--acc2);font-weight:600;">📧 입력하신 한양메일로 예약 확인 이메일이 발송됩니다.</p>
+        </div>
+        <button class="btn-lookup" onclick="lookupStudent()">
+          <span id="lookupBtnText">다음 →</span>
+          <div class="spinner" id="lookupSpinner"></div>
+        </button>
       </div>
+
+      <!-- 기존 예약 배너 -->
+      <div id="existingBanner"></div>
+
+      <!-- STEP 2 -->
+      <div class="card locked" id="step2">
+        <div class="card-title"><span class="card-title-num">2</span>상담 프로그램 선택 <span style="font-size:11px;font-weight:400;color:var(--tx2);margin-left:6px;">복수 선택 가능</span></div>
+        <div class="prof-grid" id="profGrid"></div>
+      </div>
+
+      <!-- STEP 3: 프로그램별 슬롯+문의 카드 -->
+      <div id="step3Container"></div>
+
+      <div class="err-msg" id="errMsg"></div>
+
+      <button class="btn-submit locked" id="btnSubmit" onclick="handleSubmit()">
+        <span id="btnText">예약 신청하기</span>
+        <div class="spinner" id="spinner"></div>
+      </button>
+
     </div>
-
-    <!-- STEP 2: 교수 선택 (복수 선택 가능) -->
-    <div class="card" id="step2">
-      <div class="card-title">
-        <span class="card-title-num">2</span>
-        상담 프로그램 선택 <span style="font-size:11px;font-weight:400;color:var(--tx2);margin-left:6px;">복수 선택 가능</span>
-      </div>
-      <div class="prof-grid" id="profGrid"></div>
-    </div>
-
-    <!-- STEP 3: 선택된 교수별 슬롯 카드 (동적 생성) -->
-    <div id="step3Container"></div>
-
-    <!-- STEP 4: 문의 내용 -->
-    <div class="card locked" id="step4">
-      <div class="card-title">
-        <span class="card-title-num">3</span>
-        문의 내용
-      </div>
-      <div class="form-row">
-        <label>상담 내용을 간략히 적어 주세요<span class="req">*</span></label>
-        <textarea id="inputMessage" placeholder="궁금한 전공, 진로, 수업 관련 내용 등을 자유롭게 작성해 주세요."></textarea>
-      </div>
-    </div>
-
-    <!-- 에러 메시지 -->
-    <div class="err-msg" id="errMsg">오류 메시지</div>
-
-    <!-- 제출 버튼 -->
-    <button class="btn-submit" id="btnSubmit" onclick="handleSubmit()">
-      <span id="btnText">예약 신청하기</span>
-      <div class="spinner" id="spinner"></div>
-    </button>
-  </div><!-- /formBody -->
   </main>
 
-  <!-- ── 성공 화면 ── -->
   <div class="wrap success-wrap" id="successSection">
     <div class="success-icon">✅</div>
     <h2 class="success-title">예약이 완료되었습니다!</h2>
@@ -506,24 +207,16 @@
     <button class="btn-again" onclick="resetForm()">처음으로 돌아가기</button>
   </div>
 
-  <!-- 슬롯 데이터 / Firebase 설정 -->
   <script src="firebase-config.js"></script>
-
   <script>
-    // ──────────────────────────────────────────────
-    // Firebase 초기화
-    // ──────────────────────────────────────────────
     firebase.initializeApp(FIREBASE_CONFIG);
     const db = firebase.firestore();
 
-    // ──────────────────────────────────────────────
-    // 상태
-    // selectedItems: { [prof]: { slotId, slotLabel } }
-    // slotListeners: { [prof]: [unsub, ...] }
-    // ──────────────────────────────────────────────
     const MAX_PER_SLOT = 5;
-    let selectedItems = {};   // 교수별 선택된 슬롯
-    let slotListeners = {};   // 교수별 실시간 리스너
+    let selectedItems  = {};  // { [prof]: { slotId, slotLabel, message } }
+    let slotListeners  = {};  // { [prof]: [unsub,...] }
+    let existingByProf = {};  // { [prof]: { id, slotId, slotLabel, message } }
+    let studentChecked = false;
 
     const PROFESSOR_TRACKS = {
       "정문석": "미래반도체공학",
@@ -532,72 +225,130 @@
       "김진수": "미래사회디자인",
       "권규현": "혁신공학경영"
     };
-    const TRACK_ORDER = ["미래반도체공학", "융합의과학 / 융합의공학", "인지융합과학", "미래사회디자인", "혁신공학경영"];
+    const TRACK_ORDER = ["미래반도체공학","융합의과학 / 융합의공학","인지융합과학","미래사회디자인","혁신공학경영"];
 
-    // ──────────────────────────────────────────────
-    // 교수 버튼 렌더링
-    // ──────────────────────────────────────────────
+    // ── 교수 버튼 렌더링 ──────────────────────────────
     function renderProfGrid() {
       const grid = document.getElementById('profGrid');
       grid.innerHTML = '';
-      const sorted = [...ALL_PROFESSORS].sort((a, b) =>
-        TRACK_ORDER.indexOf(PROFESSOR_TRACKS[a]) - TRACK_ORDER.indexOf(PROFESSOR_TRACKS[b])
-      );
-      sorted.forEach(prof => {
-        const btn = document.createElement('button');
-        btn.className = 'prof-btn';
-        btn.setAttribute('data-prof', prof);
-        btn.innerHTML = `
-          <div class="name">${PROFESSOR_TRACKS[prof] || prof}</div>
-          <div class="prof-name">👤 ${prof} 교수</div>
-          <div class="loc">📍 ${PROFESSOR_LOCATIONS[prof] || ''}</div>`;
-        btn.onclick = () => toggleProf(prof);
-        grid.appendChild(btn);
-      });
+      [...ALL_PROFESSORS]
+        .sort((a,b) => TRACK_ORDER.indexOf(PROFESSOR_TRACKS[a]) - TRACK_ORDER.indexOf(PROFESSOR_TRACKS[b]))
+        .forEach(prof => {
+          const btn = document.createElement('button');
+          btn.className = 'prof-btn';
+          btn.setAttribute('data-prof', prof);
+          btn.innerHTML = `
+            <div class="name">${PROFESSOR_TRACKS[prof] || prof}</div>
+            <div class="prof-name">👤 ${prof} 교수</div>
+            <div class="loc">📍 ${PROFESSOR_LOCATIONS[prof] || ''}</div>`;
+          btn.onclick = () => toggleProf(prof);
+          grid.appendChild(btn);
+        });
     }
 
-    // ──────────────────────────────────────────────
-    // 교수 토글 (선택/해제)
-    // ──────────────────────────────────────────────
+    // ── STEP1 완료 → 학생 조회 ───────────────────────
+    async function lookupStudent() {
+      const name      = document.getElementById('inputName').value.trim();
+      const studentId = document.getElementById('inputStudentId').value.trim();
+      const emailId   = document.getElementById('inputEmailId').value.trim();
+      if (!name)      return showErr('성명을 입력해 주세요.');
+      if (!studentId) return showErr('학번을 입력해 주세요.');
+      if (!/^\d{10}$/.test(studentId)) return showErr('학번은 숫자 10자리로 입력해 주세요.');
+      if (!emailId)   return showErr('한양메일 ID를 입력해 주세요.');
+      if (!/^[a-zA-Z0-9._-]+$/.test(emailId)) return showErr('이메일 ID에 사용할 수 없는 문자가 있습니다.');
+      clearErr();
+
+      document.getElementById('lookupBtnText').style.display = 'none';
+      document.getElementById('lookupSpinner').style.display = 'inline-block';
+      document.getElementById('btnSubmit').disabled = true;
+
+      try {
+        const snap = await db.collection('bookings')
+          .where('studentId', '==', studentId)
+          .where('status', '==', 'confirmed')
+          .get();
+
+        existingByProf = {};
+        snap.forEach(doc => {
+          const d = doc.data();
+          existingByProf[d.professor] = { id: doc.id, slotId: d.slotId, slotLabel: d.slotLabel, message: d.message || '' };
+        });
+
+        renderExistingBanner();
+        document.getElementById('step2').classList.remove('locked');
+        document.getElementById('btnSubmit').classList.remove('locked');
+        document.getElementById('btnSubmit').disabled = false;
+        studentChecked = true;
+
+        // 기존 예약 있는 교수 자동 선택
+        Object.keys(existingByProf).forEach(prof => {
+          if (!selectedItems[prof]) {
+            selectedItems[prof] = { slotId: null, slotLabel: null, message: '' };
+            document.querySelector(`[data-prof="${prof}"]`)?.classList.add('selected');
+            addProfSlotSection(prof);
+          }
+        });
+
+        document.getElementById('step2').scrollIntoView({ behavior: 'smooth', block: 'start' });
+
+      } catch(e) {
+        showErr('조회 중 오류: ' + e.message);
+      } finally {
+        document.getElementById('lookupBtnText').style.display = 'inline';
+        document.getElementById('lookupSpinner').style.display = 'none';
+      }
+    }
+
+    // ── 기존 예약 배너 ───────────────────────────────
+    function renderExistingBanner() {
+      const el = document.getElementById('existingBanner');
+      const profs = Object.keys(existingByProf);
+      if (profs.length === 0) { el.innerHTML = ''; return; }
+
+      const rows = profs.map(prof => {
+        const ex = existingByProf[prof];
+        return `<div class="existing-item">
+          <div>
+            <div style="font-weight:600;font-size:13px;">${PROFESSOR_TRACKS[prof] || prof}</div>
+            <div style="font-size:12px;color:#166534;">${prof} 교수 · ${ex.slotLabel}</div>
+          </div>
+          <span style="font-size:11px;background:#bbf7d0;color:#14532d;padding:2px 8px;border-radius:20px;font-weight:600;">기존예약</span>
+        </div>`;
+      }).join('');
+
+      el.innerHTML = `
+        <div class="existing-banner">
+          <div class="ex-title">📋 기존 예약 내역이 있습니다</div>
+          ${rows}
+          <div style="margin-top:8px;font-size:12px;color:#166534;">기존 예약을 자동으로 불러왔습니다. 슬롯을 변경하거나 새 프로그램을 추가할 수 있습니다.</div>
+        </div>`;
+    }
+
+    // ── 교수 토글 ────────────────────────────────────
     function toggleProf(prof) {
+      if (!studentChecked) return;
       if (selectedItems[prof] !== undefined) {
-        // 이미 선택된 경우 → 해제
         removeProf(prof);
       } else {
-        // 새로 선택
-        selectedItems[prof] = { slotId: null, slotLabel: null };
+        selectedItems[prof] = { slotId: null, slotLabel: null, message: '' };
         document.querySelector(`[data-prof="${prof}"]`).classList.add('selected');
         addProfSlotSection(prof);
-        document.getElementById('step4').classList.remove('locked');
       }
     }
 
     function removeProf(prof) {
       delete selectedItems[prof];
-      // 리스너 해제
-      if (slotListeners[prof]) {
-        slotListeners[prof].forEach(u => u());
-        delete slotListeners[prof];
-      }
-      // 버튼 해제
-      const btn = document.querySelector(`[data-prof="${prof}"]`);
-      if (btn) btn.classList.remove('selected');
-      // 슬롯 섹션 제거
-      const sec = document.getElementById('prof-section-' + prof);
-      if (sec) sec.remove();
-      // 선택된 프로그램 없으면 문의 잠금
-      if (Object.keys(selectedItems).length === 0) {
-        document.getElementById('step4').classList.add('locked');
-      }
+      if (slotListeners[prof]) { slotListeners[prof].forEach(u => u()); delete slotListeners[prof]; }
+      document.querySelector(`[data-prof="${prof}"]`)?.classList.remove('selected');
+      document.getElementById('prof-section-' + prof)?.remove();
     }
 
-    // ──────────────────────────────────────────────
-    // 교수별 슬롯 섹션 추가
-    // ──────────────────────────────────────────────
+    // ── 프로그램별 슬롯+문의 섹션 추가 ─────────────
     function addProfSlotSection(prof) {
       const container = document.getElementById('step3Container');
+      const ex = existingByProf[prof];
       const sec = document.createElement('div');
-      sec.className = 'prof-slot-section card';
+      sec.className = 'prof-slot-section';
       sec.id = 'prof-section-' + prof;
       sec.innerHTML = `
         <div class="prof-slot-header">
@@ -607,26 +358,28 @@
           </div>
           <button class="btn-remove-prof" onclick="removeProf('${prof}')" title="선택 해제">✕</button>
         </div>
-        <div class="prof-slot-body" id="slots-${prof}">
-          <p class="hint" style="text-align:center;padding:12px 0;">슬롯을 불러오는 중…</p>
+        <div class="prof-slot-body">
+          <div id="slots-${prof}">
+            <p class="hint" style="text-align:center;padding:12px 0;">슬롯을 불러오는 중…</p>
+          </div>
+          <div class="message-row">
+            <label>문의 내용<span class="req">*</span></label>
+            <textarea id="message-${prof}" placeholder="${PROFESSOR_TRACKS[prof] || prof} 관련 궁금한 점을 자유롭게 적어 주세요.">${ex ? ex.message : ''}</textarea>
+          </div>
         </div>`;
       container.appendChild(sec);
       renderSlotsForProf(prof);
     }
 
-    // ──────────────────────────────────────────────
-    // 교수별 슬롯 렌더 + 실시간 리스너
-    // ──────────────────────────────────────────────
+    // ── 슬롯 렌더 + 실시간 리스너 ───────────────────
     function renderSlotsForProf(prof) {
       const container = document.getElementById('slots-' + prof);
       if (!container) return;
       container.innerHTML = '';
-
       slotListeners[prof] = slotListeners[prof] || [];
 
-      const profSlots = SLOT_DATA.filter(s => s.professors.includes(prof));
       const dateMap = {};
-      profSlots.forEach(s => {
+      SLOT_DATA.filter(s => s.professors.includes(prof)).forEach(s => {
         if (!dateMap[s.date]) dateMap[s.date] = { label: s.dateLabel, slots: [] };
         dateMap[s.date].slots.push(s);
       });
@@ -654,9 +407,8 @@
           const unsub = db.collection('bookings')
             .where('slotId', '==', slotId)
             .where('status', '==', 'confirmed')
-            .onSnapshot(snapshot => {
-              updateSlotUI(prof, slotId, MAX_PER_SLOT - snapshot.size);
-            }, err => console.error('슬롯 리스너 오류:', err));
+            .onSnapshot(snapshot => updateSlotUI(prof, slotId, MAX_PER_SLOT - snapshot.size),
+              err => console.error('슬롯 리스너 오류:', err));
           slotListeners[prof].push(unsub);
         });
 
@@ -665,9 +417,7 @@
       });
     }
 
-    // ──────────────────────────────────────────────
-    // 슬롯 UI 업데이트
-    // ──────────────────────────────────────────────
+    // ── 슬롯 UI 업데이트 ─────────────────────────────
     function updateSlotUI(prof, slotId, remain) {
       const itemEl   = document.getElementById('slot-' + slotId);
       const remainEl = document.getElementById('remain-' + slotId);
@@ -678,67 +428,53 @@
         remainEl.textContent = '마감';
         remainEl.className = 'slot-remain full';
         if (selectedItems[prof]?.slotId === slotId) {
-          selectedItems[prof] = { slotId: null, slotLabel: null };
+          selectedItems[prof].slotId = null; selectedItems[prof].slotLabel = null;
           itemEl.classList.remove('selected');
-          showErr('선택하신 슬롯이 마감되었습니다. 다른 시간을 선택해 주세요.');
+          showErr('선택하신 슬롯이 마감되었습니다.');
         }
       } else {
         itemEl.disabled = false;
         remainEl.textContent = `${remain}/${MAX_PER_SLOT}명`;
         remainEl.className = 'slot-remain ' + (remain <= 2 ? 'low' : 'ok');
+        // 기존 예약 슬롯 자동 선택
+        const ex = existingByProf[prof];
+        if (ex && ex.slotId === slotId && !selectedItems[prof]?.slotId) {
+          selectSlot(prof, slotId, ex.slotLabel);
+        }
       }
     }
 
-    // ──────────────────────────────────────────────
-    // 슬롯 선택
-    // ──────────────────────────────────────────────
+    // ── 슬롯 선택 ────────────────────────────────────
     function selectSlot(prof, slotId, label) {
-      selectedItems[prof] = { slotId, slotLabel: label };
+      if (!selectedItems[prof]) return;
+      selectedItems[prof].slotId = slotId;
+      selectedItems[prof].slotLabel = label;
       clearErr();
-      // 해당 교수 섹션 내 슬롯만 하이라이트
-      document.querySelectorAll(`[data-prof="${prof}"].slot-item`).forEach(el => {
-        el.classList.toggle('selected', el.getAttribute('data-slotid') === slotId);
-      });
+      document.querySelectorAll(`[data-prof="${prof}"].slot-item`).forEach(el =>
+        el.classList.toggle('selected', el.getAttribute('data-slotid') === slotId)
+      );
     }
 
-    // ──────────────────────────────────────────────
-    // 유효성 검사
-    // ──────────────────────────────────────────────
+    // ── 유효성 검사 ──────────────────────────────────
     function validate() {
-      const name      = document.getElementById('inputName').value.trim();
-      const studentId = document.getElementById('inputStudentId').value.trim();
-      const emailId   = document.getElementById('inputEmailId').value.trim();
-      const message   = document.getElementById('inputMessage').value.trim();
-
-      if (!name)      return '성명을 입력해 주세요.';
-      if (!studentId) return '학번을 입력해 주세요.';
-      if (!/^\d{10}$/.test(studentId)) return '학번은 숫자 10자리로 입력해 주세요.';
-      if (!emailId)   return '이메일 아이디를 입력해 주세요.';
-      if (!/^[a-zA-Z0-9._-]+$/.test(emailId)) return '이메일 아이디에 사용할 수 없는 문자가 포함되어 있습니다.';
+      if (!studentChecked) return '학생 정보를 먼저 확인해 주세요.';
       if (Object.keys(selectedItems).length === 0) return '상담 프로그램을 하나 이상 선택해 주세요.';
-
-      // 선택된 교수 중 슬롯 미선택 확인
       for (const [prof, item] of Object.entries(selectedItems)) {
-        if (!item.slotId) return `${PROFESSOR_TRACKS[prof] || prof} 프로그램의 시간 슬롯을 선택해 주세요.`;
+        if (!item.slotId) return `${PROFESSOR_TRACKS[prof] || prof} 프로그램의 시간을 선택해 주세요.`;
+        const msg = document.getElementById('message-' + prof)?.value.trim();
+        if (!msg) return `${PROFESSOR_TRACKS[prof] || prof} 프로그램의 문의 내용을 입력해 주세요.`;
       }
-
-      // 이번 신청 내에서 시간대 중복 확인
+      // 이번 신청 내 시간대 중복
       const timeMap = {};
       for (const [prof, item] of Object.entries(selectedItems)) {
-        const timeKey = item.slotId.split('_').slice(1).join('_');
-        if (timeMap[timeKey]) {
-          return `${PROFESSOR_TRACKS[timeMap[timeKey]] || timeMap[timeKey]}와 ${PROFESSOR_TRACKS[prof] || prof}의 시간대가 겹칩니다. 같은 시간대에 두 프로그램을 신청할 수 없습니다.`;
-        }
-        timeMap[timeKey] = prof;
+        const tk = item.slotId.split('_').slice(1).join('_');
+        if (timeMap[tk]) return `${PROFESSOR_TRACKS[timeMap[tk]] || timeMap[tk]}와 ${PROFESSOR_TRACKS[prof] || prof}의 시간대가 겹칩니다.`;
+        timeMap[tk] = prof;
       }
-
-      if (!message) return '문의 내용을 입력해 주세요.';
       return null;
     }
 
-    // ──────────────────────────────────────────────
-    // 예약 제출
-    // ──────────────────────────────────────────────
+    // ── 예약 제출 ────────────────────────────────────
     async function handleSubmit() {
       clearErr();
       const err = validate();
@@ -747,51 +483,38 @@
       const name      = document.getElementById('inputName').value.trim();
       const studentId = document.getElementById('inputStudentId').value.trim();
       const email     = document.getElementById('inputEmailId').value.trim() + '@hanyang.ac.kr';
-      const message   = document.getElementById('inputMessage').value.trim();
 
-      // 신청 기간 재확인
-      const now   = new Date();
-      const start = window._regStart ? new Date(window._regStart.replace(' ', 'T')) : null;
-      const end   = window._regEnd   ? new Date(window._regEnd.replace(' ', 'T'))   : null;
-      if (!start || !end || now < start || now > end) {
-        showErr('신청 기간이 아닙니다. 예약을 진행할 수 없습니다.');
-        return;
+      const now = new Date();
+      const s = window._regStart ? new Date(window._regStart.replace(' ','T')) : null;
+      const e = window._regEnd   ? new Date(window._regEnd.replace(' ','T'))   : null;
+      if (!s || !e || now < s || now > e) { showErr('신청 기간이 아닙니다.'); return; }
+
+      // 문의 내용 수집
+      for (const prof of Object.keys(selectedItems)) {
+        selectedItems[prof].message = document.getElementById('message-' + prof)?.value.trim() || '';
       }
 
       setLoading(true);
-
       try {
-        // ── 기존 예약 전체 조회 ────────────────────────
         const allMySnap = await db.collection('bookings')
-          .where('studentId', '==', studentId)
-          .where('status', '==', 'confirmed')
-          .get();
+          .where('studentId', '==', studentId).where('status', '==', 'confirmed').get();
         const allMyBookings = allMySnap.docs.map(d => ({ id: d.id, ...d.data() }));
 
-        // ── 교수별 중복/변경 확인 ──────────────────────
-        const toDelete = [];   // 삭제할 기존 예약 id 목록
-        const toCreate = [];   // 새로 저장할 예약 목록
+        const toDelete = [], toCreate = [];
 
         for (const [prof, item] of Object.entries(selectedItems)) {
-          const { slotId, slotLabel } = item;
-
-          // 같은 교수 기존 예약 확인
+          const { slotId, slotLabel, message } = item;
           const existing = allMyBookings.find(b => b.professor === prof && !toDelete.includes(b.id));
 
           if (existing) {
-            if (existing.slotId === slotId) {
-              // 완전히 동일한 슬롯 → 건너뜀 (변경 불필요)
-              continue;
-            }
-            // 다른 슬롯 → 변경
+            if (existing.slotId === slotId) continue;
             setLoading(false);
-            const ok = confirm(`${PROFESSOR_TRACKS[prof] || prof}\n기존 예약: ${existing.slotLabel}\n새 예약: ${slotLabel}\n\n예약을 변경하시겠습니까?`);
+            const ok = confirm(`${PROFESSOR_TRACKS[prof] || prof}\n기존: ${existing.slotLabel}\n변경: ${slotLabel}\n\n예약을 변경하시겠습니까?`);
             if (!ok) { setLoading(false); return; }
             setLoading(true);
             toDelete.push(existing.id);
           }
 
-          // 기존 예약(삭제 예정 제외)과 시간대 중복 확인
           const timeKey = slotId.split('_').slice(1).join('_');
           const conflict = allMyBookings.find(b =>
             !toDelete.includes(b.id) &&
@@ -799,116 +522,77 @@
           );
           if (conflict) {
             showErr(`같은 시간대(${conflict.slotLabel})에 이미 ${conflict.professor} 교수님 예약이 있습니다.`);
-            setLoading(false);
-            return;
+            setLoading(false); return;
           }
-
-          toCreate.push({ prof, slotId, slotLabel });
+          toCreate.push({ prof, slotId, slotLabel, message });
         }
 
         if (toDelete.length === 0 && toCreate.length === 0) {
-          showErr('변경된 내용이 없습니다.');
-          setLoading(false);
-          return;
+          showErr('변경된 내용이 없습니다.'); setLoading(false); return;
         }
 
-        // ── 트랜잭션: 삭제 + 잔여 확인 + 생성 ──────────
         await db.runTransaction(async (tx) => {
-          // 잔여 인원 확인
           for (const item of toCreate) {
             const countSnap = await db.collection('bookings')
-              .where('slotId', '==', item.slotId)
-              .where('status', '==', 'confirmed')
-              .get();
+              .where('slotId', '==', item.slotId).where('status', '==', 'confirmed').get();
             const activeCount = countSnap.docs.filter(d => !toDelete.includes(d.id)).length;
-            if (activeCount >= MAX_PER_SLOT) {
-              throw new Error(`${item.slotLabel} 슬롯이 마감되었습니다. 다른 시간을 선택해 주세요.`);
-            }
+            if (activeCount >= MAX_PER_SLOT) throw new Error(`${item.slotLabel} 슬롯이 마감되었습니다.`);
           }
-          // 기존 예약 삭제
           toDelete.forEach(id => tx.delete(db.collection('bookings').doc(id)));
-          // 새 예약 저장
           toCreate.forEach(item => {
-            const ref = db.collection('bookings').doc();
-            tx.set(ref, {
+            tx.set(db.collection('bookings').doc(), {
               name, studentId, email,
               professor: item.prof,
               location: PROFESSOR_LOCATIONS[item.prof] || '',
-              slotId: item.slotId,
-              slotLabel: item.slotLabel,
-              message,
+              slotId: item.slotId, slotLabel: item.slotLabel,
+              message: item.message,
               createdAt: firebase.firestore.FieldValue.serverTimestamp(),
-              status: 'confirmed',
-              isModified: toDelete.length > 0
+              status: 'confirmed', isModified: toDelete.length > 0
             });
           });
         });
 
-        // ── 성공 화면 ──────────────────────────────────
         showSuccess({ name, studentId, items: toCreate, modified: toDelete.length > 0 });
-
-        // ── 이메일 발송 (GAS 웹앱 호출) ────────────────
         sendConfirmEmail({ name, studentId, email, items: toCreate, modified: toDelete.length > 0 });
 
-      } catch (e) {
-        showErr(e.message || '예약 중 오류가 발생했습니다. 잠시 후 다시 시도해 주세요.');
+      } catch(e) {
+        showErr(e.message || '예약 중 오류가 발생했습니다.');
       } finally {
         setLoading(false);
       }
     }
 
-    // ──────────────────────────────────────────────
-    // 이메일 발송 (GAS 웹앱 호출)
-    // ──────────────────────────────────────────────
-    // ⚠️ GAS 배포 후 아래 URL을 교체하세요
+    // ── 이메일 발송 ──────────────────────────────────
     const GAS_EMAIL_URL = 'YOUR_GAS_WEBAPP_URL';
-
     async function sendConfirmEmail(data) {
       if (!GAS_EMAIL_URL || GAS_EMAIL_URL === 'YOUR_GAS_WEBAPP_URL') return;
       try {
         await fetch(GAS_EMAIL_URL, {
-          method: 'POST',
-          mode: 'no-cors', // GAS 웹앱 CORS 우회
+          method: 'POST', mode: 'no-cors',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            name: data.name,
-            studentId: data.studentId,
-            email: data.email,
-            modified: data.modified,
+            name: data.name, studentId: data.studentId, email: data.email, modified: data.modified,
             items: data.items.map(item => ({
-              track: PROFESSOR_TRACKS[item.prof] || item.prof,
-              prof: item.prof,
-              slotLabel: item.slotLabel,
-              location: PROFESSOR_LOCATIONS[item.prof] || ''
+              track: PROFESSOR_TRACKS[item.prof] || item.prof, prof: item.prof,
+              slotLabel: item.slotLabel, location: PROFESSOR_LOCATIONS[item.prof] || ''
             }))
           })
         });
-      } catch(e) {
-        console.warn('이메일 발송 오류:', e);
-        // 이메일 실패해도 예약은 완료된 상태이므로 에러 표시 안 함
-      }
+      } catch(e) { console.warn('이메일 발송 오류:', e); }
     }
 
-    // ──────────────────────────────────────────────
-    // 성공 화면
-    // ──────────────────────────────────────────────
+    // ── 성공 화면 ────────────────────────────────────
     function showSuccess(data) {
       document.getElementById('formSection').style.display = 'none';
       const sec = document.getElementById('successSection');
       sec.style.display = 'block';
-
-      sec.querySelector('.success-title').textContent =
-        data.modified ? '예약이 변경되었습니다!' : '예약이 완료되었습니다!';
-      sec.querySelector('.success-sub').innerHTML =
-        '입력하신 이메일로 예약 확인 안내가 발송될 예정입니다.<br>상담 장소를 꼭 확인하고 방문해 주세요.';
-
+      sec.querySelector('.success-title').textContent = data.modified ? '예약이 변경되었습니다!' : '예약이 완료되었습니다!';
       const rows = data.items.map(item => `
         <div class="success-row" style="flex-direction:column;align-items:flex-start;gap:4px;padding:10px 0;">
           <span class="sv" style="font-size:14px;">📌 ${PROFESSOR_TRACKS[item.prof] || item.prof}</span>
           <span class="sk">👤 ${item.prof} 교수 · ⏰ ${item.slotLabel}</span>
           <span class="sk">📍 ${PROFESSOR_LOCATIONS[item.prof] || ''}</span>
         </div>`).join('');
-
       document.getElementById('successDetail').innerHTML = `
         <div class="success-row"><span class="sk">성명</span><span class="sv">${data.name}</span></div>
         <div class="success-row"><span class="sk">학번</span><span class="sv">${data.studentId}</span></div>
@@ -916,36 +600,28 @@
       sec.scrollIntoView({ behavior: 'smooth' });
     }
 
-    // ──────────────────────────────────────────────
-    // 폼 리셋
-    // ──────────────────────────────────────────────
+    // ── 폼 리셋 ──────────────────────────────────────
     function resetForm() {
       document.getElementById('successSection').style.display = 'none';
       document.getElementById('formSection').style.display = 'block';
       document.getElementById('inputName').value = '';
       document.getElementById('inputStudentId').value = '';
       document.getElementById('inputEmailId').value = '';
-      document.getElementById('inputMessage').value = '';
-      // 교수 선택 초기화
-      Object.keys(selectedItems).forEach(prof => {
-        if (slotListeners[prof]) slotListeners[prof].forEach(u => u());
-      });
-      selectedItems = {};
-      slotListeners = {};
+      Object.keys(slotListeners).forEach(p => slotListeners[p].forEach(u => u()));
+      selectedItems = {}; slotListeners = {}; existingByProf = {}; studentChecked = false;
       document.querySelectorAll('.prof-btn').forEach(b => b.classList.remove('selected'));
       document.getElementById('step3Container').innerHTML = '';
-      document.getElementById('step4').classList.add('locked');
+      document.getElementById('existingBanner').innerHTML = '';
+      document.getElementById('step2').classList.add('locked');
+      document.getElementById('btnSubmit').classList.add('locked');
       clearErr();
       window.scrollTo({ top: 0, behavior: 'smooth' });
     }
 
-    // ──────────────────────────────────────────────
-    // 유틸
-    // ──────────────────────────────────────────────
+    // ── 유틸 ─────────────────────────────────────────
     function showErr(msg) {
       const el = document.getElementById('errMsg');
-      el.textContent = '⚠️ ' + msg;
-      el.classList.add('show');
+      el.textContent = '⚠️ ' + msg; el.classList.add('show');
       el.scrollIntoView({ behavior: 'smooth', block: 'center' });
     }
     function clearErr() { document.getElementById('errMsg').classList.remove('show'); }
@@ -955,58 +631,42 @@
       document.getElementById('spinner').style.display = on ? 'block' : 'none';
     }
 
-    // ──────────────────────────────────────────────
-    // 신청 기간 체크 (Firestore에서 읽어옴)
-    // ──────────────────────────────────────────────
+    // ── 신청기간 체크 ────────────────────────────────
     function formatPeriod(start, end) {
-      const fmt = s => {
-        const d = new Date(s.replace(' ', 'T'));
-        return `${d.getMonth()+1}월 ${d.getDate()}일 ${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`;
-      };
+      const fmt = s => { const d = new Date(s.replace(' ','T')); return `${d.getMonth()+1}월 ${d.getDate()}일 ${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`; };
       return end ? `${fmt(start)} ~ ${fmt(end)}` : fmt(start);
     }
-
     async function checkRegistrationPeriod() {
       const periodEl = document.getElementById('regPeriodText');
       const closedEl = document.getElementById('closedBanner');
       const formEl   = document.getElementById('formBody');
-      const titleEl  = document.getElementById('closedTitle');
-      const descEl   = document.getElementById('closedDesc');
       try {
         const doc = await db.collection('settings').doc('registration').get();
         if (!doc.exists || !doc.data().start || !doc.data().end) {
           periodEl.textContent = '미설정';
           closedEl.style.display = 'block';
-          titleEl.textContent = '현재 신청을 받고 있지 않습니다.';
-          descEl.textContent = '신청 기간이 설정되지 않았습니다.';
-          formEl.style.display = 'none';
-          return;
+          document.getElementById('closedTitle').textContent = '현재 신청을 받고 있지 않습니다.';
+          document.getElementById('closedDesc').textContent = '신청 기간이 설정되지 않았습니다.';
+          formEl.style.display = 'none'; return;
         }
         const { start, end } = doc.data();
-        const now = new Date();
         periodEl.textContent = formatPeriod(start, end);
-        window._regStart = start;
-        window._regEnd   = end;
+        window._regStart = start; window._regEnd = end;
+        const now = new Date();
         if (now < new Date(start.replace(' ','T'))) {
           closedEl.style.display = 'block';
-          titleEl.textContent = '신청 기간이 아직 시작되지 않았습니다.';
-          descEl.textContent  = `신청 시작: ${formatPeriod(start, null)}`;
+          document.getElementById('closedTitle').textContent = '신청 기간이 아직 시작되지 않았습니다.';
+          document.getElementById('closedDesc').textContent = `신청 시작: ${formatPeriod(start, null)}`;
           formEl.style.display = 'none';
         } else if (now > new Date(end.replace(' ','T'))) {
           closedEl.style.display = 'block';
-          titleEl.textContent = '신청 기간이 마감되었습니다.';
-          descEl.textContent  = `신청 기간: ${formatPeriod(start, end)}`;
+          document.getElementById('closedTitle').textContent = '신청 기간이 마감되었습니다.';
+          document.getElementById('closedDesc').textContent = `신청 기간: ${formatPeriod(start, end)}`;
           formEl.style.display = 'none';
         }
-      } catch(e) {
-        periodEl.textContent = '확인 오류';
-        console.error('신청기간 로딩 오류:', e);
-      }
+      } catch(e) { periodEl.textContent = '확인 오류'; console.error(e); }
     }
 
-    // ──────────────────────────────────────────────
-    // 초기화
-    // ──────────────────────────────────────────────
     checkRegistrationPeriod();
     renderProfGrid();
   </script>
