@@ -7,7 +7,6 @@
 
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;600;700&display=swap" rel="stylesheet" />
@@ -325,7 +324,7 @@
           <option value="2026-05-22">5월 22일(금)</option>
         </select>
         <input type="text" id="filterSearch" placeholder="이름 / 학번 검색" oninput="applyFilter()" style="min-width:140px;" />
-        <button class="btn-export" onclick="exportExcel()">⬇ 엑셀 다운로드</button>
+        <button class="btn-export" onclick="exportToGAS()">📊 구글 시트 생성</button>
       </div>
 
       <div class="table-wrap">
@@ -620,118 +619,42 @@
     }
 
     // ──────────────────────────────────────────────
-    // 엑셀 다운로드 (교수님 전달용)
+    // 구글 시트 생성 (GAS 호출)
     // ──────────────────────────────────────────────
-    function exportExcel() {
+    const GAS_URL = 'https://script.google.com/macros/s/AKfycbyPpv_AM5Xaf3gfyapIc1S00-AKQ_B3rFBxqj6sDEFHZ7lBb1ekGs8rK1xu2PCYkePiYQ/exec';
+
+    async function exportToGAS() {
       const confirmed = allBookings.filter(b => b.status !== 'cancelled');
       if (confirmed.length === 0) {
         showToast('다운로드할 예약 내역이 없습니다.', true);
         return;
       }
 
-      const wb = XLSX.utils.book_new();
-      const trackOrder = ["미래반도체공학","융합의과학 / 융합의공학","인지융합과학","미래사회디자인","혁신공학경영"];
+      showToast('구글 시트를 생성하는 중… 잠시 기다려 주세요.');
 
-      // ── 프로그램별 시트 (교수 전달용) ─────────────
-      trackOrder.forEach(track => {
-        const prof = Object.keys(PROFESSOR_TRACKS).find(p => PROFESSOR_TRACKS[p] === track);
-        if (!prof) return;
+      const bookings = confirmed.map(b => ({
+        professor: b.professor,
+        slotLabel: b.slotLabel || '',
+        name: b.name,
+        studentId: b.studentId,
+        email: b.email,
+        location: b.location || '',
+        message: b.message || ''
+      }));
 
-        const trackBookings = confirmed.filter(b => b.professor === prof);
-        if (trackBookings.length === 0) return;
-
-        // 해당 교수의 슬롯 목록 (날짜·시간 순)
-        const profSlots = SLOT_DATA
-          .filter(s => s.professors.includes(prof))
-          .sort((a, b) => (a.date + a.time).localeCompare(b.date + b.time));
-
-        const aoa = []; // array of arrays (행 데이터)
-
-        // 시트 제목 행
-        aoa.push([`${track} 오피스 아워 상담 예약 현황`]);
-        aoa.push([`담당 교수: ${prof}  |  장소: ${PROFESSOR_LOCATIONS[prof] || ''}`]);
-        aoa.push([]); // 빈 줄
-
-        profSlots.forEach(slot => {
-          const slotId = makeSlotId(prof, slot.date, slot.time);
-          const slotBookings = trackBookings
-            .filter(b => b.slotId === slotId)
-            .sort((a, b) => (a.createdAt?.toDate?.() || 0) - (b.createdAt?.toDate?.() || 0));
-
-          // 슬롯 헤더
-          aoa.push([`${slot.dateLabel}  ${slot.time}`, '', `${slotBookings.length}/${MAX_PER_SLOT}명`]);
-          // 컬럼 헤더
-          aoa.push(['번호', '성명', '학번', '이메일', '문의 내용']);
-
-          if (slotBookings.length === 0) {
-            aoa.push(['', '(예약 없음)', '', '', '']);
-          } else {
-            slotBookings.forEach((b, i) => {
-              aoa.push([
-                i + 1,
-                b.name,
-                b.studentId,
-                b.email,
-                b.message || ''
-              ]);
-            });
-          }
-          aoa.push([]); // 슬롯 사이 빈 줄
+      try {
+        const res = await fetch(GAS_URL, {
+          method: 'POST',
+          mode: 'no-cors',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ action: 'createSheet', bookings })
         });
-
-        const ws = XLSX.utils.aoa_to_sheet(aoa);
-
-        // 열 너비 설정
-        ws['!cols'] = [
-          { wch: 6 },  // 번호
-          { wch: 10 }, // 성명
-          { wch: 13 }, // 학번
-          { wch: 26 }, // 이메일
-          { wch: 40 }, // 문의내용
-        ];
-
-        const sheetName = track.replace(/[:\\\/\?\*\[\]]/g, '').substring(0, 31);
-        XLSX.utils.book_append_sheet(wb, ws, sheetName);
-      });
-
-      // ── 전체 현황 시트 (관리자용) ─────────────────
-      const allRows = confirmed
-        .slice()
-        .sort((a, b) => {
-          const ta = trackOrder.indexOf(PROFESSOR_TRACKS[a.professor] || '');
-          const tb = trackOrder.indexOf(PROFESSOR_TRACKS[b.professor] || '');
-          if (ta !== tb) return ta - tb;
-          return (a.slotLabel || '').localeCompare(b.slotLabel || '');
-        })
-        .map((b, i) => ({
-          '번호': i + 1,
-          '프로그램': PROFESSOR_TRACKS[b.professor] || b.professor,
-          '교수': b.professor,
-          '일시': b.slotLabel || '',
-          '성명': b.name,
-          '학번': b.studentId,
-          '이메일': b.email,
-          '장소': b.location || '',
-          '문의내용': b.message || '',
-          '신청일시': b.createdAt
-            ? (b.createdAt.toDate ? b.createdAt.toDate() : new Date(b.createdAt)).toLocaleString('ko-KR')
-            : ''
-        }));
-
-      const wsAll = XLSX.utils.json_to_sheet(allRows);
-      wsAll['!cols'] = [6,18,8,22,8,13,26,20,40,18].map(w => ({ wch: w }));
-      XLSX.utils.book_append_sheet(wb, wsAll, '전체현황(관리자)');
-
-      // ── 파일 저장 ──────────────────────────────────
-      const today = new Date().toLocaleDateString('ko-KR').replace(/\. /g,'-').replace('.','');
-      XLSX.writeFile(wb, `HIC_오피스아워_예약현황_${today}.xlsx`);
-      showToast('엑셀 파일이 다운로드되었습니다.');
+        // no-cors 모드라 응답을 읽을 수 없으므로 안내 토스트
+        showToast('구글 드라이브에 시트가 생성되었습니다. 드라이브에서 확인해 주세요.');
+      } catch(e) {
+        showToast('시트 생성 오류: ' + e.message, true);
+      }
     }
-
-    function setColWidths(ws, widths) {
-      ws['!cols'] = widths.map(w => ({ wch: w }));
-    }
-
     // ──────────────────────────────────────────────
     // 신청기간 로드
     // ──────────────────────────────────────────────
