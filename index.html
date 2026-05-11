@@ -391,6 +391,15 @@
         </div>`;
       container.appendChild(sec);
       renderSlotsForProf(prof);
+
+      // 이미 선택된 다른 교수 시간대 즉시 비활성화
+      Object.entries(selectedItems).forEach(([otherProf, item]) => {
+        if (otherProf !== prof && item.slotId) {
+          const timeKey = item.slotId.split('_').slice(1).join('_');
+          // 약간 딜레이 후 적용 (슬롯 렌더 완료 후)
+          setTimeout(() => disableConflictSlots(otherProf, timeKey), 300);
+        }
+      });
     }
 
     // ── 슬롯 렌더 + 실시간 리스너 (드롭다운) ──────────
@@ -522,22 +531,60 @@
     function selectSlot(prof, slotId, label) {
       if (!selectedItems[prof]) return;
 
-      // 기존 선택된 슬롯 UI 해제
+      // 기존 선택된 슬롯 UI 해제 + 다른 교수 비활성 해제
       const prevSlotId = selectedItems[prof].slotId;
       if (prevSlotId && prevSlotId !== slotId) {
         const prevEl = document.getElementById('slot-' + prevSlotId);
         if (prevEl) prevEl.classList.remove('selected');
-        // 기존 날짜 버튼 라벨 원복
         const prevDate = prevSlotId.split('_')[1];
         resetDateBtnLabel(prof, prevDate);
+        // 기존 선택 시간대로 비활성화됐던 다른 교수 슬롯 복원
+        const prevTimeKey = prevSlotId.split('_').slice(1).join('_');
+        reEnableConflictSlots(prof, prevTimeKey);
       }
 
       selectedItems[prof].slotId = slotId;
       selectedItems[prof].slotLabel = label;
       clearErr();
+
+      // 이 교수 카드 내 선택 표시
       document.querySelectorAll(`[data-prof="${prof}"].slot-item`).forEach(el =>
         el.classList.toggle('selected', el.getAttribute('data-slotid') === slotId)
       );
+
+      // 다른 교수 카드에서 같은 시간대 슬롯 비활성화
+      const timeKey = slotId.split('_').slice(1).join('_');
+      disableConflictSlots(prof, timeKey);
+    }
+
+    // 같은 시간대 다른 교수 슬롯 비활성화
+    function disableConflictSlots(excludeProf, timeKey) {
+      Object.keys(selectedItems).forEach(otherProf => {
+        if (otherProf === excludeProf) return;
+        document.querySelectorAll(`[data-prof="${otherProf}"].slot-item`).forEach(el => {
+          const elTimeKey = el.getAttribute('data-slotid').split('_').slice(1).join('_');
+          if (elTimeKey === timeKey) {
+            el.disabled = true;
+            el.setAttribute('data-conflict', 'true');
+            const remainEl = document.getElementById('remain-' + el.getAttribute('data-slotid'));
+            if (remainEl) { remainEl.textContent = '시간 겹침'; remainEl.className = 'slot-remain full'; }
+          }
+        });
+      });
+    }
+
+    // 시간 겹침 비활성화 해제
+    function reEnableConflictSlots(excludeProf, timeKey) {
+      Object.keys(selectedItems).forEach(otherProf => {
+        if (otherProf === excludeProf) return;
+        document.querySelectorAll(`[data-prof="${otherProf}"].slot-item`).forEach(el => {
+          const elTimeKey = el.getAttribute('data-slotid').split('_').slice(1).join('_');
+          if (elTimeKey === timeKey && el.getAttribute('data-conflict') === 'true') {
+            el.removeAttribute('data-conflict');
+            // 잔여 인원 텍스트는 Firestore 리스너가 자동으로 복원
+          }
+        });
+      });
     }
 
     // ── 유효성 검사 ──────────────────────────────────
@@ -648,7 +695,7 @@
     }
 
     // ── 이메일 발송 ──────────────────────────────────
-    const GAS_EMAIL_URL = 'YOUR_GAS_WEBAPP_URL';
+    const GAS_EMAIL_URL = 'https://script.google.com/macros/s/AKfycbyPpv_AM5Xaf3gfyapIc1S00-AKQ_B3rFBxqj6sDEFHZ7lBb1ekGs8rK1xu2PCYkePiYQ/exec';
     async function sendConfirmEmail(data) {
       if (!GAS_EMAIL_URL || GAS_EMAIL_URL === 'YOUR_GAS_WEBAPP_URL') return;
       try {
