@@ -160,7 +160,7 @@
 
   <main class="wrap" id="formSection">
     <div class="info-banner">
-      <strong>📅 2026 HIC Majors Fair</strong> 당일 부스 상담을 이용하지 못한 학생들을 위한 추가 상담 기회입니다.<br>
+      <strong>📅 2026 한양YK인터칼리지 융합전공 소개행사</strong> 당일 부스 상담을 이용하지 못한 학생들을 위한 추가 상담 기회입니다.<br>
       신청 기간 <strong id="regPeriodText"></strong><br>
       운영 기간 <strong>5월 18일(월) ~ 5월 22일(금)</strong> · 슬롯당 최대 5명 선착순<br>
       <span style="color:#d97706;font-weight:600;">⚠️ 본 오피스 아워는 GCA 가산점이 제공되지 않습니다.</span>
@@ -280,6 +280,16 @@
       if (!/^[a-zA-Z0-9._-]+$/.test(emailId)) return showErr('이메일 ID에 사용할 수 없는 문자가 있습니다.');
       clearErr();
 
+      // 재조회 시 기존 상태 초기화 (다음 버튼 재클릭 대응)
+      Object.keys(slotListeners).forEach(p => slotListeners[p].forEach(u => u()));
+      selectedItems = {}; slotListeners = {}; existingByProf = {};
+      document.querySelectorAll('.prof-btn').forEach(b => b.classList.remove('selected'));
+      document.getElementById('step3Container').innerHTML = '';
+      document.getElementById('existingBanner').innerHTML = '';
+      document.getElementById('step2').classList.add('locked');
+      document.getElementById('btnSubmit').classList.add('locked');
+      studentChecked = false;
+
       document.getElementById('lookupBtnText').style.display = 'none';
       document.getElementById('lookupSpinner').style.display = 'inline-block';
       document.getElementById('btnSubmit').disabled = true;
@@ -358,11 +368,9 @@
 
       try {
         await db.collection('bookings').doc(ex.id).update({ status: 'cancelled' });
-        // 상태 업데이트
         delete existingByProf[prof];
-        // 해당 교수 카드도 제거
-        if (selectedItems[prof]) removeProf(prof);
-        // 배너 다시 렌더
+        // removeProf가 리스너 해제 + conflict 복원 + 카드 제거 모두 처리
+        if (selectedItems[prof] !== undefined) removeProf(prof);
         renderExistingBanner();
         showToastMsg(`${track} 예약이 취소되었습니다.`);
       } catch(e) {
@@ -389,7 +397,13 @@
     }
 
     function removeProf(prof) {
+      // 이 교수가 선택한 슬롯으로 비활성화된 다른 교수 슬롯 복원
+      if (selectedItems[prof]?.slotId) {
+        const timeKey = selectedItems[prof].slotId.substring(selectedItems[prof].slotId.indexOf('_') + 1);
+        reEnableConflictSlots(prof, timeKey);
+      }
       delete selectedItems[prof];
+      // 리스너 해제
       if (slotListeners[prof]) { slotListeners[prof].forEach(u => u()); delete slotListeners[prof]; }
       document.querySelector(`[data-prof="${prof}"]`)?.classList.remove('selected');
       document.getElementById('prof-section-' + prof)?.remove();
@@ -425,7 +439,7 @@
       // 이미 선택된 다른 교수 시간대 즉시 비활성화
       Object.entries(selectedItems).forEach(([otherProf, item]) => {
         if (otherProf !== prof && item.slotId) {
-          const timeKey = item.slotId.split('_').slice(1).join('_');
+          const timeKey = item.slotId.substring(item.slotId.indexOf('_') + 1);
           // 약간 딜레이 후 적용 (슬롯 렌더 완료 후)
           setTimeout(() => disableConflictSlots(otherProf, timeKey), 300);
         }
@@ -542,6 +556,8 @@
           showErr('선택하신 슬롯이 마감되었습니다.');
         }
       } else {
+        // 시간 겹침으로 비활성화된 슬롯은 Firestore 리스너가 덮어쓰지 않음
+        if (itemEl.getAttribute('data-conflict') === 'true') return;
         itemEl.disabled = false;
         remainEl.textContent = `${remain}/${MAX_PER_SLOT}명`;
         remainEl.className = 'slot-remain ' + (remain <= 2 ? 'low' : 'ok');
@@ -549,9 +565,8 @@
         const ex = existingByProf[prof];
         if (ex && ex.slotId === slotId && !selectedItems[prof]?.slotId) {
           selectSlot(prof, slotId, ex.slotLabel);
-          // 날짜 버튼 라벨 업데이트
-          const slotDate = slotId.split('_')[1]; // "2026-05-18" 형태
-          const slotTime = ex.slotLabel.split(' ').slice(-1)[0]; // "09:00~09:30"
+          const slotDate = slotId.split('_')[1];
+          const slotTime = ex.slotLabel.split(' ').slice(-1)[0];
           updateDateBtnLabel(prof, slotDate, slotTime);
         }
       }
@@ -569,7 +584,7 @@
         const prevDate = prevSlotId.split('_')[1];
         resetDateBtnLabel(prof, prevDate);
         // 기존 선택 시간대로 비활성화됐던 다른 교수 슬롯 복원
-        const prevTimeKey = prevSlotId.split('_').slice(1).join('_');
+        const prevTimeKey = prevSlotId.substring(prevSlotId.indexOf('_') + 1);
         reEnableConflictSlots(prof, prevTimeKey);
       }
 
@@ -583,7 +598,7 @@
       );
 
       // 다른 교수 카드에서 같은 시간대 슬롯 비활성화
-      const timeKey = slotId.split('_').slice(1).join('_');
+      const timeKey = slotId.substring(slotId.indexOf('_') + 1);
       disableConflictSlots(prof, timeKey);
     }
 
@@ -592,11 +607,13 @@
       Object.keys(selectedItems).forEach(otherProf => {
         if (otherProf === excludeProf) return;
         document.querySelectorAll(`[data-prof="${otherProf}"].slot-item`).forEach(el => {
-          const elTimeKey = el.getAttribute('data-slotid').split('_').slice(1).join('_');
+          const elSlotId = el.getAttribute('data-slotid');
+          // slotId = "교수명_날짜_시간" → 교수명 제거 후 "날짜_시간" 추출
+          const elTimeKey = elSlotId.substring(elSlotId.indexOf('_') + 1);
           if (elTimeKey === timeKey) {
             el.disabled = true;
             el.setAttribute('data-conflict', 'true');
-            const remainEl = document.getElementById('remain-' + el.getAttribute('data-slotid'));
+            const remainEl = document.getElementById('remain-' + elSlotId);
             if (remainEl) { remainEl.textContent = '시간 겹침'; remainEl.className = 'slot-remain full'; }
           }
         });
@@ -608,10 +625,10 @@
       Object.keys(selectedItems).forEach(otherProf => {
         if (otherProf === excludeProf) return;
         document.querySelectorAll(`[data-prof="${otherProf}"].slot-item`).forEach(el => {
-          const elTimeKey = el.getAttribute('data-slotid').split('_').slice(1).join('_');
+          const elSlotId = el.getAttribute('data-slotid');
+          const elTimeKey = elSlotId.substring(elSlotId.indexOf('_') + 1);
           if (elTimeKey === timeKey && el.getAttribute('data-conflict') === 'true') {
             el.removeAttribute('data-conflict');
-            // 잔여 인원 텍스트는 Firestore 리스너가 자동으로 복원
           }
         });
       });
@@ -629,7 +646,7 @@
       // 이번 신청 내 시간대 중복
       const timeMap = {};
       for (const [prof, item] of Object.entries(selectedItems)) {
-        const tk = item.slotId.split('_').slice(1).join('_');
+        const tk = item.slotId.substring(item.slotId.indexOf('_') + 1);
         if (timeMap[tk]) return `${PROFESSOR_TRACKS[timeMap[tk]] || timeMap[tk]}와 ${PROFESSOR_TRACKS[prof] || prof}의 시간대가 겹칩니다.`;
         timeMap[tk] = prof;
       }
@@ -677,10 +694,10 @@
             toDelete.push(existing.id);
           }
 
-          const timeKey = slotId.split('_').slice(1).join('_');
+          const timeKey = slotId.substring(slotId.indexOf('_') + 1);
           const conflict = allMyBookings.find(b =>
             !toDelete.includes(b.id) &&
-            b.slotId.split('_').slice(1).join('_') === timeKey
+            b.slotId.substring(b.slotId.indexOf('_') + 1) === timeKey
           );
           if (conflict) {
             showErr(`같은 시간대(${conflict.slotLabel})에 이미 ${conflict.professor} 교수님 예약이 있습니다.`);
