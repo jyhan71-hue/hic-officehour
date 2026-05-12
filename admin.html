@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>HIC 오피스 아워 관리자 | 한양인터칼리지</title>
+  <title>HIC 오피스 아워 예약 | 한양인터칼리지</title>
 
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
@@ -13,256 +13,138 @@
 
   <style>
     :root {
-      --bg: #f0f4fa;
-      --sur: #ffffff;
-      --bdr: #dde3ef;
-      --acc: #1b3a6b;
-      --acc2: #2563eb;
-      --alit: #eff6ff;
-      --ok: #16a34a;    --okbg: #f0fdf4;
-      --err: #dc2626;   --errbg: #fef2f2;
-      --warn: #d97706;  --warnbg: #fffbeb;
-      --tx: #1e293b;
-      --tx2: #64748b;
-      --tx3: #94a3b8;
-      --r: 10px;
-      --sh: 0 2px 8px rgba(0,0,0,.08);
+      --bg: #f0f4fa; --sur: #ffffff; --bdr: #dde3ef;
+      --acc: #1b3a6b; --acc2: #2563eb; --alit: #eff6ff;
+      --ok: #16a34a; --okbg: #f0fdf4;
+      --err: #dc2626; --errbg: #fef2f2;
+      --warn: #d97706; --warnbg: #fffbeb;
+      --tx: #1e293b; --tx2: #64748b; --tx3: #94a3b8;
+      --r: 12px; --sh: 0 2px 8px rgba(0,0,0,.08), 0 1px 2px rgba(0,0,0,.04);
     }
-
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-    body {
-      font-family: 'Noto Sans KR', -apple-system, sans-serif;
-      background: var(--bg);
-      color: var(--tx);
-      line-height: 1.6;
-    }
+    body { font-family: 'Noto Sans KR', -apple-system, sans-serif; background: var(--bg); color: var(--tx); line-height: 1.6; min-height: 100vh; }
 
-    /* ── 헤더 ── */
-    .header {
-      background: var(--acc);
-      color: #fff;
-      padding: 0 24px;
-      position: sticky;
-      top: 0;
-      z-index: 100;
-      box-shadow: 0 2px 8px rgba(0,0,0,.2);
-    }
-    .header-inner {
-      max-width: 1100px;
-      margin: 0 auto;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      height: 54px;
-    }
-    .header-left { display: flex; align-items: center; gap: 12px; }
-    .header-logo { font-size: 11px; font-weight: 700; letter-spacing: .08em; opacity: .7; }
-    .header-sep { width: 1px; height: 18px; background: rgba(255,255,255,.25); }
-    .header-title { font-size: 14px; font-weight: 600; }
-    .header-badge {
-      background: rgba(255,255,255,.2);
-      padding: 2px 10px;
-      border-radius: 20px;
-      font-size: 11px;
-      font-weight: 600;
-    }
+    .header { background: var(--acc); color: #fff; padding: 0 20px; }
+    .header-inner { max-width: 680px; margin: 0 auto; display: flex; align-items: center; gap: 12px; height: 58px; }
+    .header-logo { font-size: 11px; font-weight: 700; letter-spacing: .08em; opacity: .7; text-transform: uppercase; }
+    .header-sep { width: 1px; height: 20px; background: rgba(255,255,255,.25); }
+    .header-title { font-size: 15px; font-weight: 600; }
 
-    /* ── 래퍼 ── */
-    .wrap {
-      max-width: 1100px;
-      margin: 0 auto;
-      padding: 24px 20px 60px;
-    }
+    .wrap { max-width: 680px; margin: 0 auto; padding: 24px 20px 60px; }
 
-    /* ── 탭 바 ── */
-    .tab-bar {
-      display: flex;
-      gap: 0;
-      border-bottom: 2px solid var(--bdr);
-      margin-bottom: 20px;
-      overflow-x: auto;
-    }
-    .tab {
-      padding: 9px 18px;
-      border: none;
-      background: none;
-      font-size: 13px;
-      font-weight: 600;
-      color: var(--tx2);
-      cursor: pointer;
-      border-bottom: 2px solid transparent;
-      margin-bottom: -2px;
-      transition: color .2s, border-color .2s;
-      white-space: nowrap;
-      font-family: inherit;
-    }
-    .tab:hover { color: var(--acc2); }
-    .tab.active { color: var(--acc2); border-bottom-color: var(--acc2); }
+    .info-banner { background: var(--alit); border: 1px solid #bfdbfe; border-radius: var(--r); padding: 14px 16px; margin-bottom: 20px; font-size: 13px; color: #1e40af; line-height: 1.7; }
+    .info-banner strong { font-weight: 700; }
 
-    /* ── 통계 카드 행 ── */
-    .stat-row {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
-      gap: 12px;
-      margin-bottom: 20px;
-    }
-    .stat-card {
-      background: var(--sur);
-      border: 1px solid var(--bdr);
-      border-radius: var(--r);
-      padding: 16px;
-      box-shadow: var(--sh);
-    }
-    .stat-label { font-size: 11px; color: var(--tx2); font-weight: 600; letter-spacing: .04em; margin-bottom: 4px; }
-    .stat-value { font-size: 28px; font-weight: 700; color: var(--acc); font-variant-numeric: tabular-nums; }
-    .stat-sub { font-size: 11px; color: var(--tx3); margin-top: 2px; }
+    .card { background: var(--sur); border: 1px solid var(--bdr); border-radius: var(--r); padding: 22px 20px; margin-bottom: 16px; box-shadow: var(--sh); }
+    .card-title { font-size: 13px; font-weight: 700; color: var(--acc); letter-spacing: .04em; text-transform: uppercase; margin-bottom: 14px; display: flex; align-items: center; gap: 6px; }
+    .card-title-num { display: inline-flex; align-items: center; justify-content: center; width: 20px; height: 20px; background: var(--acc); color: #fff; border-radius: 50%; font-size: 11px; font-weight: 700; }
 
-    /* ── 필터 바 ── */
-    .filter-bar {
-      display: flex;
-      gap: 10px;
-      flex-wrap: wrap;
-      margin-bottom: 16px;
-      align-items: center;
-    }
-    .filter-bar select,
-    .filter-bar input {
-      padding: 7px 12px;
-      border: 1.5px solid var(--bdr);
-      border-radius: 8px;
-      font-size: 13px;
-      font-family: inherit;
-      color: var(--tx);
-      background: var(--sur);
-      -webkit-appearance: none;
-    }
-    .filter-bar select { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath fill='%2394a3b8' d='M1 1l5 5 5-5'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 10px center; padding-right: 28px; }
-    .filter-bar select:focus, .filter-bar input:focus { outline: none; border-color: var(--acc2); }
-    .btn-refresh {
-      padding: 7px 14px;
-      background: var(--acc2);
-      color: #fff;
-      border: none;
-      border-radius: 8px;
-      font-size: 12px;
-      font-weight: 600;
-      font-family: inherit;
-      cursor: pointer;
-      white-space: nowrap;
-    }
-    .btn-export {
-      padding: 7px 14px;
-      background: var(--ok);
-      color: #fff;
-      border: none;
-      border-radius: 8px;
-      font-size: 12px;
-      font-weight: 600;
-      font-family: inherit;
-      cursor: pointer;
-      white-space: nowrap;
-    }
+    .form-row { margin-bottom: 14px; }
+    .form-row:last-child { margin-bottom: 0; }
+    label { display: block; font-size: 12px; font-weight: 600; color: var(--tx2); margin-bottom: 5px; }
+    label .req { color: var(--err); margin-left: 2px; }
+    input[type="text"], textarea { width: 100%; padding: 10px 12px; border: 1.5px solid var(--bdr); border-radius: 8px; font-size: 14px; font-family: inherit; color: var(--tx); background: #fff; transition: border-color .2s; }
+    input:focus, textarea:focus { outline: none; border-color: var(--acc2); box-shadow: 0 0 0 3px rgba(37,99,235,.12); }
+    input::placeholder, textarea::placeholder { color: var(--tx3); }
+    textarea { resize: vertical; min-height: 80px; }
 
-    /* ── 테이블 ── */
-    .table-wrap { overflow-x: auto; border-radius: var(--r); box-shadow: var(--sh); }
-    table { width: 100%; border-collapse: collapse; background: var(--sur); font-size: 13px; }
-    thead tr { background: var(--acc); color: #fff; }
-    th { padding: 10px 12px; text-align: left; font-weight: 600; font-size: 12px; white-space: nowrap; }
-    td { padding: 9px 12px; border-bottom: 1px solid var(--bdr); vertical-align: middle; }
-    tr:hover td { background: #f8faff; }
-    tr:last-child td { border-bottom: none; }
-    .badge {
-      display: inline-block;
-      padding: 2px 9px;
-      border-radius: 20px;
-      font-size: 11px;
-      font-weight: 600;
-    }
-    .badge-ok   { background: var(--okbg);   color: var(--ok); }
-    .badge-err  { background: var(--errbg);  color: var(--err); }
-    .badge-warn { background: var(--warnbg); color: var(--warn); }
-    .btn-cancel {
-      padding: 3px 10px;
-      border: 1.5px solid var(--err);
-      background: #fff;
-      color: var(--err);
-      border-radius: 6px;
-      font-size: 11px;
-      font-weight: 600;
-      font-family: inherit;
-      cursor: pointer;
-      transition: background .18s;
-    }
-    .btn-cancel:hover { background: var(--errbg); }
+    .email-wrap { display: flex; align-items: center; border: 1.5px solid var(--bdr); border-radius: 8px; overflow: hidden; background: #fff; transition: border-color .2s; }
+    .email-wrap:focus-within { border-color: var(--acc2); box-shadow: 0 0 0 3px rgba(37,99,235,.12); }
+    .email-wrap input { border: none !important; box-shadow: none !important; border-radius: 0 !important; flex: 1; min-width: 0; }
+    .email-wrap input:focus { box-shadow: none !important; }
+    .email-domain { padding: 0 12px; font-size: 14px; color: var(--tx2); background: #f8faff; border-left: 1.5px solid var(--bdr); height: 42px; display: flex; align-items: center; white-space: nowrap; font-weight: 500; }
 
-    /* ── 슬롯 현황 탭 ── */
-    .slot-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
-      gap: 12px;
-    }
-    .slot-card {
-      background: var(--sur);
-      border: 1px solid var(--bdr);
-      border-radius: var(--r);
-      padding: 14px;
-      box-shadow: var(--sh);
-    }
-    .slot-card-header {
-      font-size: 12px;
-      font-weight: 700;
-      color: var(--acc);
-      margin-bottom: 4px;
-    }
-    .slot-card-time {
-      font-size: 13px;
-      font-weight: 600;
-      color: var(--tx);
-      margin-bottom: 8px;
-    }
-    .slot-bar-wrap { display: flex; align-items: center; gap: 8px; }
-    .slot-bar-bg { flex: 1; height: 8px; background: var(--bdr); border-radius: 4px; overflow: hidden; }
-    .slot-bar-fill { height: 100%; border-radius: 4px; transition: width .4s; }
-    .slot-bar-fill.full { background: var(--err); }
-    .slot-bar-fill.low  { background: var(--warn); }
-    .slot-bar-fill.ok   { background: var(--ok); }
-    .slot-count { font-size: 12px; font-weight: 600; white-space: nowrap; }
-    .slot-count.full { color: var(--err); }
-    .slot-count.low  { color: var(--warn); }
-    .slot-count.ok   { color: var(--ok); }
+    .btn-lookup { width: 100%; margin-top: 14px; padding: 11px; background: var(--acc); color: #fff; border: none; border-radius: 8px; font-size: 14px; font-weight: 700; font-family: inherit; cursor: pointer; transition: background .18s; display: flex; align-items: center; justify-content: center; gap: 8px; }
+    .btn-lookup:hover { background: #152d56; }
 
-    /* ── 빈 상태 ── */
-    .empty-state {
-      text-align: center;
-      padding: 40px 20px;
-      color: var(--tx3);
-      font-size: 14px;
+    .existing-banner { background: var(--okbg); border: 1px solid #86efac; border-radius: 10px; padding: 14px 16px; margin-bottom: 16px; font-size: 13px; color: #14532d; }
+    .existing-banner .ex-title { font-weight: 700; margin-bottom: 8px; font-size: 14px; }
+    .existing-item { padding: 7px 0; border-bottom: 1px solid #bbf7d0; display: flex; justify-content: space-between; align-items: center; }
+    .existing-item:last-child { border-bottom: none; }
+
+    .prof-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(155px, 1fr)); gap: 8px; }
+    .prof-btn { border: 1.5px solid var(--bdr); border-radius: 8px; padding: 10px 8px; background: #fff; cursor: pointer; text-align: center; transition: all .18s; font-family: inherit; }
+    .prof-btn:hover { border-color: var(--acc2); background: var(--alit); }
+    .prof-btn.selected { border-color: var(--acc2); background: var(--alit); box-shadow: 0 0 0 2px rgba(37,99,235,.2); }
+    .prof-btn .name { font-size: 13px; font-weight: 700; color: var(--tx); }
+    .prof-btn .prof-name { font-size: 11px; font-weight: 500; color: var(--tx2); margin-top: 3px; }
+    .prof-btn .loc { font-size: 10px; color: var(--tx3); margin-top: 2px; line-height: 1.4; }
+
+    /* ── 슬롯 드롭다운 ── */
+    .date-group { margin-bottom: 8px; }
+    .date-dropdown-btn {
+      width: 100%; display: flex; align-items: center; justify-content: space-between;
+      padding: 10px 12px; border: 1.5px solid var(--bdr); border-radius: 8px;
+      background: #fff; cursor: pointer; font-family: inherit; font-size: 13px;
+      font-weight: 600; color: var(--tx); transition: all .18s;
     }
-
-    /* ── 로딩 ── */
-    .loading-row td { text-align: center; color: var(--tx3); font-size: 13px; }
-
-    /* ── 토스트 ── */
-    #toast {
-      position: fixed;
-      bottom: 24px; left: 50%;
-      transform: translateX(-50%) translateY(20px);
-      background: #1e293b;
-      color: #fff;
-      padding: 10px 20px;
-      border-radius: 8px;
-      font-size: 13px;
-      font-weight: 500;
-      opacity: 0;
-      transition: all .3s;
-      z-index: 1000;
-      pointer-events: none;
+    .date-dropdown-btn:hover { border-color: var(--acc2); background: var(--alit); }
+    .date-dropdown-btn.open { border-color: var(--acc2); border-bottom-left-radius: 0; border-bottom-right-radius: 0; background: var(--alit); }
+    .date-dropdown-btn.has-selection { border-color: var(--ok); background: var(--okbg); color: var(--ok); }
+    .date-dropdown-arrow { font-size: 10px; transition: transform .2s; }
+    .date-dropdown-btn.open .date-dropdown-arrow { transform: rotate(180deg); }
+    .slot-dropdown-panel {
+      display: none; border: 1.5px solid var(--acc2); border-top: none;
+      border-bottom-left-radius: 8px; border-bottom-right-radius: 8px;
+      overflow: hidden; margin-bottom: 2px;
     }
-    #toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+    .slot-dropdown-panel.open { display: block; }
+    .slot-item {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 10px 12px; border-bottom: 1px solid var(--bdr);
+      cursor: pointer; background: #fff; transition: all .15s;
+      font-family: inherit; width: 100%; text-align: left; border-left: none; border-right: none; border-top: none;
+    }
+    .slot-item:last-child { border-bottom: none; }
+    .slot-item:hover:not(:disabled) { background: var(--alit); }
+    .slot-item.selected { background: var(--alit); }
+    .slot-item:disabled { opacity: .45; cursor: not-allowed; background: #f8f9fb; }
+    .slot-time { font-size: 14px; font-weight: 600; color: var(--tx); }
+    .slot-remain { font-size: 12px; font-weight: 600; padding: 3px 9px; border-radius: 20px; }
+    .slot-remain.full { background: #fee2e2; color: var(--err); }
+    .slot-remain.low  { background: var(--warnbg); color: var(--warn); }
+    .slot-remain.ok   { background: var(--okbg); color: var(--ok); }
 
-    @media (max-width: 600px) {
-      .wrap { padding: 14px 12px 50px; }
-      .stat-row { grid-template-columns: repeat(2, 1fr); }
+    .prof-slot-section { border: 1.5px solid var(--bdr); border-radius: 10px; margin-bottom: 12px; overflow: hidden; background: var(--sur); box-shadow: var(--sh); }
+    .prof-slot-header { display: flex; align-items: center; justify-content: space-between; padding: 10px 14px; background: var(--alit); border-bottom: 1px solid var(--bdr); }
+    .prof-slot-header-left { font-size: 13px; font-weight: 700; color: var(--acc); }
+    .prof-slot-header-sub  { font-size: 11px; color: var(--tx2); margin-top: 2px; }
+    .btn-remove-prof { border: none; background: none; cursor: pointer; color: var(--tx3); font-size: 18px; line-height: 1; padding: 2px 6px; border-radius: 4px; transition: color .15s, background .15s; }
+    .btn-remove-prof:hover { color: var(--err); background: var(--errbg); }
+    .prof-slot-body { padding: 14px; }
+    .message-row { margin-top: 14px; padding-top: 14px; border-top: 1px solid var(--bdr); }
+
+    .btn-submit { width: 100%; padding: 14px; background: var(--acc2); color: #fff; border: none; border-radius: 10px; font-size: 15px; font-weight: 700; font-family: inherit; cursor: pointer; transition: background .2s, transform .1s; letter-spacing: .02em; }
+    .btn-submit:hover:not(:disabled) { background: #1d4ed8; }
+    .btn-submit:active:not(:disabled) { transform: scale(.98); }
+    .btn-submit:disabled { opacity: .5; cursor: not-allowed; }
+
+    .success-wrap { display: none; text-align: center; padding: 40px 20px 60px; }
+    .success-icon { font-size: 56px; margin-bottom: 16px; animation: pop .4s cubic-bezier(.36,.07,.19,.97); }
+    @keyframes pop { 0% { transform: scale(.4); opacity: 0; } 80% { transform: scale(1.15); } 100% { transform: scale(1); opacity: 1; } }
+    .success-title { font-size: 22px; font-weight: 700; color: var(--acc); margin-bottom: 8px; }
+    .success-sub { font-size: 14px; color: var(--tx2); line-height: 1.7; }
+    .success-card { background: var(--sur); border: 1px solid var(--bdr); border-radius: var(--r); padding: 18px 20px; margin: 20px auto; max-width: 440px; text-align: left; }
+    .success-row { display: flex; justify-content: space-between; padding: 6px 0; font-size: 13px; border-bottom: 1px solid var(--bdr); }
+    .success-row:last-child { border-bottom: none; }
+    .success-row .sk { color: var(--tx2); }
+    .success-row .sv { font-weight: 600; color: var(--tx); }
+    .btn-again { margin-top: 16px; padding: 11px 28px; border: 1.5px solid var(--acc2); background: #fff; color: var(--acc2); border-radius: 8px; font-size: 14px; font-weight: 600; font-family: inherit; cursor: pointer; transition: background .18s; }
+    .btn-again:hover { background: var(--alit); }
+
+    .err-msg { display: none; background: var(--errbg); border: 1px solid #fca5a5; border-radius: 8px; padding: 10px 14px; font-size: 13px; color: var(--err); margin-bottom: 12px; }
+    .err-msg.show { display: block; }
+
+    .spinner { display: none; width: 18px; height: 18px; border: 2.5px solid rgba(255,255,255,.4); border-top-color: #fff; border-radius: 50%; animation: spin .7s linear infinite; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    .locked { opacity: .35; pointer-events: none; }
+    .hint { font-size: 12px; color: var(--tx3); margin-top: 4px; }
+
+    @media (max-width: 480px) {
+      .wrap { padding: 16px 14px 50px; }
+      .prof-grid { grid-template-columns: repeat(2, 1fr); }
+      .card { padding: 18px 14px; }
     }
   </style>
 </head>
@@ -270,140 +152,82 @@
 <body>
   <header class="header">
     <div class="header-inner">
-      <div class="header-left">
-        <span class="header-logo">HIC</span>
-        <div class="header-sep"></div>
-        <span class="header-title">오피스 아워 관리자</span>
-      </div>
-      <span class="header-badge">관리자 전용</span>
+      <span class="header-logo">HIC</span>
+      <div class="header-sep"></div>
+      <span class="header-title">오피스 아워 예약 신청</span>
     </div>
   </header>
 
-  <div class="wrap">
-    <!-- 통계 -->
-    <div class="stat-row" id="statRow">
-      <div class="stat-card">
-        <div class="stat-label">전체 예약</div>
-        <div class="stat-value" id="statTotal">-</div>
-        <div class="stat-sub">건</div>
-      </div>
-      <div class="stat-card">
-        <div class="stat-label">마감 슬롯</div>
-        <div class="stat-value" id="statFull">-</div>
-        <div class="stat-sub">개 (5/5명)</div>
-      </div>
-      <div class="stat-card">
-        <div class="stat-label">오늘 신청</div>
-        <div class="stat-value" id="statToday">-</div>
-        <div class="stat-sub">건</div>
-      </div>
-      <div class="stat-card">
-        <div class="stat-label">취소 처리</div>
-        <div class="stat-value" id="statCancelled">-</div>
-        <div class="stat-sub">건</div>
-      </div>
+  <main class="wrap" id="formSection">
+    <div class="info-banner">
+      <strong>📅 2026 한양YK인터칼리지 융합전공 소개행사</strong> 당일 부스 상담을 이용하지 못한 학생들을 위한 추가 상담 기회입니다.<br>
+      신청 기간 <strong id="regPeriodText"></strong><br>
+      운영 기간 <strong>5월 18일(월) ~ 5월 22일(금)</strong> · 슬롯당 최대 5명 선착순<br>
+      <span style="color:#d97706;font-weight:600;">⚠️ 본 오피스 아워는 GCA 가산점이 제공되지 않습니다.</span>
     </div>
 
-    <!-- 탭 -->
-    <div class="tab-bar">
-      <button class="tab active" onclick="showTab('bookings')">📋 예약 목록</button>
-      <button class="tab" onclick="showTab('slots')">🗓 슬롯 현황</button>
-      <button class="tab" onclick="showTab('settings')">⚙️ 신청기간 설정</button>
+    <div id="closedBanner" style="display:none;background:#fef2f2;border:1px solid #fca5a5;border-radius:12px;padding:20px;text-align:center;margin-bottom:16px;">
+      <div style="font-size:32px;margin-bottom:8px;">🔒</div>
+      <div style="font-size:16px;font-weight:700;color:#dc2626;margin-bottom:6px;" id="closedTitle"></div>
+      <div style="font-size:13px;color:#64748b;" id="closedDesc"></div>
     </div>
 
-    <!-- ── 예약 목록 탭 ── -->
-    <div id="tab-bookings">
-      <div class="filter-bar">
-        <select id="filterProf" onchange="applyFilter()">
-          <option value="">전체 교수</option>
-        </select>
-        <select id="filterDate" onchange="applyFilter()">
-          <option value="">전체 날짜</option>
-          <option value="2026-05-18">5월 18일(월)</option>
-          <option value="2026-05-20">5월 20일(수)</option>
-          <option value="2026-05-22">5월 22일(금)</option>
-        </select>
-        <input type="text" id="filterSearch" placeholder="이름 / 학번 검색" oninput="applyFilter()" style="min-width:140px;" />
-        <button class="btn-export" onclick="exportToGAS()">📊 구글 시트 생성</button>
-      </div>
+    <div id="formBody">
 
-      <div class="table-wrap">
-        <table>
-          <thead>
-            <tr>
-              <th>#</th>
-              <th>성명</th>
-              <th>학번</th>
-              <th>이메일</th>
-              <th>교수</th>
-              <th>일시</th>
-              <th>장소</th>
-              <th>신청일시</th>
-            </tr>
-          </thead>
-          <tbody id="bookingsTbody">
-            <tr class="loading-row"><td colspan="8">로딩 중…</td></tr>
-          </tbody>
-        </table>
-      </div>
-    </div>
-
-    <!-- ── 슬롯 현황 탭 ── -->
-    <div id="tab-slots" style="display:none;">
-      <div class="filter-bar">
-        <select id="slotFilterProf" onchange="renderSlotStatus()">
-          <option value="">전체 교수</option>
-        </select>
-        <select id="slotFilterDate" onchange="renderSlotStatus()">
-          <option value="">전체 날짜</option>
-          <option value="2026-05-18">5월 18일(월)</option>
-          <option value="2026-05-20">5월 20일(수)</option>
-          <option value="2026-05-22">5월 22일(금)</option>
-        </select>
-      </div>
-      <div class="slot-grid" id="slotGrid">
-        <p class="empty-state">로딩 중…</p>
-      </div>
-    </div>
-
-    <!-- ── 신청기간 설정 탭 ── -->
-    <div id="tab-settings" style="display:none;">
-      <div style="max-width:480px;">
-        <div style="background:var(--sur);border:1px solid var(--bdr);border-radius:var(--r);padding:24px;box-shadow:var(--sh);">
-          <div style="font-size:14px;font-weight:700;color:var(--acc);margin-bottom:20px;">📅 신청기간 설정</div>
-
-          <div style="margin-bottom:16px;">
-            <label style="display:block;font-size:12px;font-weight:600;color:var(--tx2);margin-bottom:6px;">신청 시작 일시</label>
-            <input type="datetime-local" id="settingStart"
-              style="width:100%;padding:10px 12px;border:1.5px solid var(--bdr);border-radius:8px;font-size:14px;font-family:inherit;color:var(--tx);" />
-          </div>
-
-          <div style="margin-bottom:24px;">
-            <label style="display:block;font-size:12px;font-weight:600;color:var(--tx2);margin-bottom:6px;">신청 마감 일시</label>
-            <input type="datetime-local" id="settingEnd"
-              style="width:100%;padding:10px 12px;border:1.5px solid var(--bdr);border-radius:8px;font-size:14px;font-family:inherit;color:var(--tx);" />
-          </div>
-
-          <!-- 현재 설정 표시 -->
-          <div id="currentPeriod" style="background:var(--alit);border:1px solid #bfdbfe;border-radius:8px;padding:12px 14px;font-size:13px;color:#1e40af;margin-bottom:16px;">
-            로딩 중…
-          </div>
-
-          <button onclick="savePeriod()"
-            style="width:100%;padding:12px;background:var(--acc2);color:#fff;border:none;border-radius:8px;font-size:14px;font-weight:700;font-family:inherit;cursor:pointer;">
-            저장하기
-          </button>
+      <!-- STEP 1 -->
+      <div class="card" id="step1">
+        <div class="card-title"><span class="card-title-num">1</span>학생 정보 입력</div>
+        <div class="form-row">
+          <label>성명<span class="req">*</span></label>
+          <input type="text" id="inputName" placeholder="홍길동" autocomplete="name" />
         </div>
-
-        <div style="margin-top:12px;font-size:12px;color:var(--tx3);line-height:1.7;">
-          💡 저장 즉시 예약 페이지에 반영됩니다.<br>
-          신청 기간 외에는 학생이 예약 폼을 볼 수 없습니다.
+        <div class="form-row">
+          <label>학번<span class="req">*</span></label>
+          <input type="text" id="inputStudentId" placeholder="2024000000" autocomplete="off" maxlength="10" inputmode="numeric" oninput="this.value=this.value.replace(/[^0-9]/g,'')" />
         </div>
+        <div class="form-row">
+          <label>한양메일 ID<span class="req">*</span></label>
+          <div class="email-wrap">
+            <input type="text" id="inputEmailId" placeholder="hanyang123" autocomplete="off" />
+            <span class="email-domain">@hanyang.ac.kr</span>
+          </div>
+          <p class="hint" style="margin-top:7px;font-size:13px;color:var(--acc2);font-weight:600;">📧 입력하신 한양메일로 예약 확인 이메일이 발송됩니다.</p>
+        </div>
+        <button class="btn-lookup" onclick="lookupStudent()">
+          <span id="lookupBtnText">다음 →</span>
+          <div class="spinner" id="lookupSpinner"></div>
+        </button>
       </div>
+
+      <!-- 기존 예약 배너 -->
+      <div id="existingBanner"></div>
+
+      <!-- STEP 2 -->
+      <div class="card locked" id="step2">
+        <div class="card-title"><span class="card-title-num">2</span>상담 프로그램 선택 <span style="font-size:11px;font-weight:400;color:var(--tx2);margin-left:6px;">복수 선택 가능</span></div>
+        <div class="prof-grid" id="profGrid"></div>
+      </div>
+
+      <!-- STEP 3: 프로그램별 슬롯+문의 카드 -->
+      <div id="step3Container"></div>
+
+      <div class="err-msg" id="errMsg"></div>
+
+      <button class="btn-submit locked" id="btnSubmit" onclick="handleSubmit()">
+        <span id="btnText">예약 신청하기</span>
+        <div class="spinner" id="spinner"></div>
+      </button>
+
     </div>
+  </main>
+
+  <div class="wrap success-wrap" id="successSection">
+    <div class="success-icon">✅</div>
+    <h2 class="success-title">예약이 완료되었습니다!</h2>
+    <p class="success-sub">입력하신 이메일로 예약 확인 안내가 발송될 예정입니다.<br>상담 장소를 꼭 확인하고 방문해 주세요.</p>
+    <div class="success-card" id="successDetail"></div>
+    <button class="btn-again" onclick="resetForm()">처음으로 돌아가기</button>
   </div>
-
-  <div id="toast"></div>
 
   <script src="firebase-config.js"></script>
   <script>
@@ -411,8 +235,10 @@
     const db = firebase.firestore();
 
     const MAX_PER_SLOT = 5;
-    let allBookings = [];
-    let bookingCounts = {};
+    let selectedItems  = {};  // { [prof]: { slotId, slotLabel, message } }
+    let slotListeners  = {};  // { [prof]: [unsub,...] }
+    let existingByProf = {};  // { [prof]: { id, slotId, slotLabel, message } }
+    let studentChecked = false;
 
     const PROFESSOR_TRACKS = {
       "정문석": "미래반도체공학",
@@ -421,303 +247,590 @@
       "김진수": "미래사회디자인",
       "권규현": "혁신공학경영"
     };
+    const TRACK_ORDER = ["미래반도체공학","융합의과학 / 융합의공학","인지융합과학","미래사회디자인","혁신공학경영"];
 
-    // ──────────────────────────────────────────────
-    // 탭 전환
-    // ──────────────────────────────────────────────
-    function showTab(name) {
-      ['bookings', 'slots', 'settings'].forEach(t => {
-        document.getElementById('tab-' + t).style.display = (t === name) ? 'block' : 'none';
-      });
-      document.querySelectorAll('.tab').forEach((el, i) => {
-        el.classList.toggle('active', ['bookings', 'slots', 'settings'][i] === name);
-      });
-      if (name === 'slots') renderSlotStatus();
-      if (name === 'settings') loadPeriod();
-    }
-
-    // ──────────────────────────────────────────────
-    // 실시간 데이터 리스닝
-    // ──────────────────────────────────────────────
-    db.collection('bookings').orderBy('createdAt', 'desc').onSnapshot(snapshot => {
-      allBookings = [];
-      snapshot.forEach(doc => {
-        allBookings.push({ id: doc.id, ...doc.data() });
-      });
-      updateStats();
-      applyFilter();
-      buildSlotCounts();
-    }, err => {
-      console.error('Firestore 오류:', err);
-      showToast('데이터 로딩 오류: ' + err.message, true);
-    });
-
-    // ──────────────────────────────────────────────
-    // 교수 필터 옵션 채우기
-    // ──────────────────────────────────────────────
-    function populateProfFilters() {
-      ['filterProf', 'slotFilterProf'].forEach(id => {
-        const sel = document.getElementById(id);
-        // 기존 동적 옵션 제거
-        while (sel.options.length > 1) sel.remove(1);
-        ALL_PROFESSORS.forEach(p => {
-          const opt = document.createElement('option');
-          opt.value = p;
-          opt.textContent = p;
-          sel.appendChild(opt);
+    // ── 교수 버튼 렌더링 ──────────────────────────────
+    function renderProfGrid() {
+      const grid = document.getElementById('profGrid');
+      grid.innerHTML = '';
+      [...ALL_PROFESSORS]
+        .sort((a,b) => TRACK_ORDER.indexOf(PROFESSOR_TRACKS[a]) - TRACK_ORDER.indexOf(PROFESSOR_TRACKS[b]))
+        .forEach(prof => {
+          const btn = document.createElement('button');
+          btn.className = 'prof-btn';
+          btn.setAttribute('data-prof', prof);
+          btn.innerHTML = `
+            <div class="name">${PROFESSOR_TRACKS[prof] || prof}</div>
+            <div class="prof-name">👤 ${prof} 교수</div>
+            <div class="loc">📍 ${PROFESSOR_LOCATIONS[prof] || ''}</div>`;
+          btn.onclick = () => toggleProf(prof);
+          grid.appendChild(btn);
         });
-      });
-    }
-    populateProfFilters();
-
-    // ──────────────────────────────────────────────
-    // 슬롯별 카운트 빌드
-    // ──────────────────────────────────────────────
-    function buildSlotCounts() {
-      bookingCounts = {};
-      allBookings.forEach(b => {
-        if (b.status !== 'cancelled') {
-          bookingCounts[b.slotId] = (bookingCounts[b.slotId] || 0) + 1;
-        }
-      });
     }
 
-    // ──────────────────────────────────────────────
-    // 통계 업데이트
-    // ──────────────────────────────────────────────
-    function updateStats() {
-      const confirmed = allBookings.filter(b => b.status !== 'cancelled');
-      const cancelled = allBookings.filter(b => b.status === 'cancelled');
+    // ── STEP1 완료 → 학생 조회 ───────────────────────
+    async function lookupStudent() {
+      const name      = document.getElementById('inputName').value.trim();
+      const studentId = document.getElementById('inputStudentId').value.trim();
+      const emailId   = document.getElementById('inputEmailId').value.trim();
+      if (!name)      return showErr('성명을 입력해 주세요.');
+      if (!studentId) return showErr('학번을 입력해 주세요.');
+      if (!/^\d{10}$/.test(studentId)) return showErr('학번은 숫자 10자리로 입력해 주세요.');
+      if (!emailId)   return showErr('한양메일 ID를 입력해 주세요.');
+      if (!/^[a-zA-Z0-9._-]+$/.test(emailId)) return showErr('이메일 ID에 사용할 수 없는 문자가 있습니다.');
+      clearErr();
 
-      document.getElementById('statTotal').textContent = confirmed.length;
-      document.getElementById('statCancelled').textContent = cancelled.length;
+      document.getElementById('lookupBtnText').style.display = 'none';
+      document.getElementById('lookupSpinner').style.display = 'inline-block';
+      document.getElementById('btnSubmit').disabled = true;
 
-      // 마감 슬롯 수
-      const counts = {};
-      confirmed.forEach(b => { counts[b.slotId] = (counts[b.slotId] || 0) + 1; });
-      const fullCount = Object.values(counts).filter(c => c >= MAX_PER_SLOT).length;
-      document.getElementById('statFull').textContent = fullCount;
-
-      // 오늘 신청
-      const today = new Date().toLocaleDateString('ko-KR');
-      const todayCount = confirmed.filter(b => {
-        if (!b.createdAt) return false;
-        const d = b.createdAt.toDate ? b.createdAt.toDate() : new Date(b.createdAt);
-        return d.toLocaleDateString('ko-KR') === today;
-      }).length;
-      document.getElementById('statToday').textContent = todayCount;
-    }
-
-    // ──────────────────────────────────────────────
-    // 필터 적용 & 테이블 렌더
-    // ──────────────────────────────────────────────
-    function applyFilter() {
-      const fProf   = document.getElementById('filterProf').value;
-      const fDate   = document.getElementById('filterDate').value;
-      const fSearch = document.getElementById('filterSearch').value.trim().toLowerCase();
-
-      let filtered = allBookings.filter(b => {
-        if (b.status === 'cancelled') return false;
-        if (fProf   && b.professor !== fProf) return false;
-        if (fDate   && !(b.slotId || '').includes(fDate.replace(/-/g, ''))) return false;
-        if (fSearch && !b.name.toLowerCase().includes(fSearch) && !String(b.studentId).includes(fSearch)) return false;
-        return true;
-      });
-
-      renderTable(filtered);
-    }
-
-    function renderTable(data) {
-      const tbody = document.getElementById('bookingsTbody');
-      if (data.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="8" class="empty-state">예약 내역이 없습니다.</td></tr>';
-        return;
-      }
-      tbody.innerHTML = data.map((b, i) => {
-        const status = b.status === 'cancelled'
-          ? '<span class="badge badge-err">취소</span>'
-          : '<span class="badge badge-ok">확정</span>';
-        const createdAt = b.createdAt
-          ? (b.createdAt.toDate ? b.createdAt.toDate() : new Date(b.createdAt)).toLocaleString('ko-KR')
-          : '-';
-        const cancelBtn = b.status !== 'cancelled'
-          ? `<button class="btn-cancel" onclick="cancelBooking('${b.id}','${b.name}')">취소</button>`
-          : '-';
-          return `<tr>
-          <td>${i + 1}</td>
-          <td><strong>${b.name}</strong></td>
-          <td>${b.studentId}</td>
-          <td><a href="mailto:${b.email}" style="color:var(--acc2);text-decoration:none;">${b.email}</a></td>
-          <td>${b.professor}</td>
-          <td style="white-space:nowrap;">${b.slotLabel || '-'}</td>
-          <td style="font-size:12px;color:var(--tx2);">${b.location || '-'}</td>
-          <td style="white-space:nowrap;font-size:12px;color:var(--tx2);">${createdAt}</td>
-        </tr>`;
-      }).join('');
-    }
-
-    // ──────────────────────────────────────────────
-    // 예약 취소
-    // ──────────────────────────────────────────────
-    async function cancelBooking(docId, name) {
-      if (!confirm(`${name}님의 예약을 취소하시겠습니까?`)) return;
       try {
-        await db.collection('bookings').doc(docId).update({ status: 'cancelled' });
-        showToast(`${name}님 예약이 취소되었습니다.`);
-      } catch (e) {
-        showToast('취소 처리 중 오류: ' + e.message, true);
+        const snap = await db.collection('bookings')
+          .where('studentId', '==', studentId)
+          .where('status', '==', 'confirmed')
+          .get();
+
+        existingByProf = {};
+        snap.forEach(doc => {
+          const d = doc.data();
+          existingByProf[d.professor] = { id: doc.id, slotId: d.slotId, slotLabel: d.slotLabel, message: d.message || '' };
+        });
+
+        renderExistingBanner();
+        document.getElementById('step2').classList.remove('locked');
+        document.getElementById('btnSubmit').classList.remove('locked');
+        document.getElementById('btnSubmit').disabled = false;
+        studentChecked = true;
+
+        // 기존 예약 있는 교수 자동 선택
+        Object.keys(existingByProf).forEach(prof => {
+          if (!selectedItems[prof]) {
+            selectedItems[prof] = { slotId: null, slotLabel: null, message: '' };
+            document.querySelector(`[data-prof="${prof}"]`)?.classList.add('selected');
+            addProfSlotSection(prof);
+          }
+        });
+
+        document.getElementById('step2').scrollIntoView({ behavior: 'smooth', block: 'start' });
+
+      } catch(e) {
+        showErr('조회 중 오류: ' + e.message);
+      } finally {
+        document.getElementById('lookupBtnText').style.display = 'inline';
+        document.getElementById('lookupSpinner').style.display = 'none';
       }
     }
 
-    // ──────────────────────────────────────────────
-    // 슬롯 현황 탭 렌더
-    // ──────────────────────────────────────────────
-    function renderSlotStatus() {
-      const fProf = document.getElementById('slotFilterProf').value;
-      const fDate = document.getElementById('slotFilterDate').value;
+    // ── 기존 예약 배너 ───────────────────────────────
+    function renderExistingBanner() {
+      const el = document.getElementById('existingBanner');
+      const profs = Object.keys(existingByProf);
+      if (profs.length === 0) { el.innerHTML = ''; return; }
 
-      let slots = SLOT_DATA.filter(s => {
-        if (fProf && !s.professors.includes(fProf)) return false;
-        if (fDate && s.date !== fDate) return false;
-        return true;
-      });
-
-      // 교수별로 전개
-      const items = [];
-      slots.forEach(s => {
-        s.professors.forEach(prof => {
-          if (fProf && prof !== fProf) return;
-          const slotId = makeSlotId(prof, s.date, s.time);
-          const count = bookingCounts[slotId] || 0;
-          items.push({ prof, date: s.date, dateLabel: s.dateLabel, time: s.time, slotId, count });
-        });
-      });
-
-      const grid = document.getElementById('slotGrid');
-      if (items.length === 0) {
-        grid.innerHTML = '<p class="empty-state">표시할 슬롯이 없습니다.</p>';
-        return;
-      }
-
-      grid.innerHTML = items.map(item => {
-        const remain = MAX_PER_SLOT - item.count;
-        const pct = Math.round((item.count / MAX_PER_SLOT) * 100);
-        const cls = remain <= 0 ? 'full' : remain <= 2 ? 'low' : 'ok';
-        const label = remain <= 0 ? '마감' : remain <= 2 ? `잔여 ${remain}명` : `잔여 ${remain}명`;
-        return `<div class="slot-card">
-          <div class="slot-card-header">👤 ${item.prof}</div>
-          <div class="slot-card-time">📅 ${item.dateLabel} ${item.time}</div>
-          <div class="slot-bar-wrap">
-            <div class="slot-bar-bg">
-              <div class="slot-bar-fill ${cls}" style="width:${pct}%;"></div>
-            </div>
-            <span class="slot-count ${cls}">${item.count}/${MAX_PER_SLOT}</span>
+      const rows = profs.map(prof => {
+        const ex = existingByProf[prof];
+        return `<div class="existing-item">
+          <div>
+            <div style="font-weight:600;font-size:13px;">${PROFESSOR_TRACKS[prof] || prof}</div>
+            <div style="font-size:12px;color:#166534;">${prof} 교수 · ${ex.slotLabel}</div>
           </div>
-          <div style="font-size:11px;color:var(--tx2);margin-top:5px;">${label}</div>
+          <div style="display:flex;align-items:center;gap:8px;">
+            <span style="font-size:11px;background:#bbf7d0;color:#14532d;padding:2px 8px;border-radius:20px;font-weight:600;">기존예약</span>
+            <button onclick="cancelBooking('${prof}')" style="font-size:11px;padding:3px 10px;border:1.5px solid #dc2626;background:#fff;color:#dc2626;border-radius:6px;cursor:pointer;font-family:inherit;font-weight:600;">취소</button>
+          </div>
         </div>`;
       }).join('');
+
+      el.innerHTML = `
+        <div class="existing-banner">
+          <div class="ex-title">📋 기존 예약 내역이 있습니다</div>
+          ${rows}
+          <div style="margin-top:8px;font-size:12px;color:#166534;">기존 예약을 자동으로 불러왔습니다. 슬롯을 변경하거나 새 프로그램을 추가할 수 있습니다.</div>
+        </div>`;
     }
 
-    // ──────────────────────────────────────────────
-    // 구글 시트 생성 (GAS 호출)
-    // ──────────────────────────────────────────────
-    const GAS_URL = 'https://script.google.com/macros/s/AKfycbyPpv_AM5Xaf3gfyapIc1S00-AKQ_B3rFBxqj6sDEFHZ7lBb1ekGs8rK1xu2PCYkePiYQ/exec';
-
-    async function exportToGAS() {
-      const confirmed = allBookings.filter(b => b.status !== 'cancelled');
-      if (confirmed.length === 0) {
-        showToast('다운로드할 예약 내역이 없습니다.', true);
-        return;
-      }
-
-      showToast('구글 시트를 생성하는 중… 잠시 기다려 주세요.');
-
-      const bookings = confirmed.map(b => ({
-        professor: b.professor,
-        slotLabel: b.slotLabel || '',
-        name: b.name,
-        studentId: b.studentId,
-        email: b.email,
-        location: b.location || '',
-        message: b.message || ''
-      }));
+    // ── 예약 취소 (학생) ─────────────────────────────
+    async function cancelBooking(prof) {
+      const ex = existingByProf[prof];
+      if (!ex) return;
+      const track = PROFESSOR_TRACKS[prof] || prof;
+      if (!confirm(`${track} 예약을 취소하시겠습니까?\n\n${prof} 교수 · ${ex.slotLabel}\n\n취소 후 되돌릴 수 없습니다.`)) return;
 
       try {
-        const res = await fetch(GAS_URL, {
-          method: 'POST',
-          mode: 'no-cors',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ action: 'createSheet', bookings })
-        });
-        // no-cors 모드라 응답을 읽을 수 없으므로 안내 토스트
-        showToast('구글 드라이브에 시트가 생성되었습니다. 드라이브에서 확인해 주세요.');
+        await db.collection('bookings').doc(ex.id).update({ status: 'cancelled' });
+        // 상태 업데이트
+        delete existingByProf[prof];
+        // 해당 교수 카드도 제거
+        if (selectedItems[prof]) removeProf(prof);
+        // 배너 다시 렌더
+        renderExistingBanner();
+        showToastMsg(`${track} 예약이 취소되었습니다.`);
       } catch(e) {
-        showToast('시트 생성 오류: ' + e.message, true);
+        alert('취소 중 오류가 발생했습니다: ' + e.message);
       }
     }
-    // ──────────────────────────────────────────────
-    // 신청기간 로드
-    // ──────────────────────────────────────────────
-    async function loadPeriod() {
-      const el = document.getElementById('currentPeriod');
+
+    function showToastMsg(msg) {
+      const toast = document.createElement('div');
+      toast.textContent = '✅ ' + msg;
+      toast.style.cssText = 'position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:#1e293b;color:#fff;padding:10px 20px;border-radius:8px;font-size:13px;font-weight:500;z-index:1000;transition:opacity .3s;';
+      document.body.appendChild(toast);
+      setTimeout(() => { toast.style.opacity = '0'; setTimeout(() => toast.remove(), 300); }, 2500);
+    }
+    function toggleProf(prof) {
+      if (!studentChecked) return;
+      if (selectedItems[prof] !== undefined) {
+        removeProf(prof);
+      } else {
+        selectedItems[prof] = { slotId: null, slotLabel: null, message: '' };
+        document.querySelector(`[data-prof="${prof}"]`).classList.add('selected');
+        addProfSlotSection(prof);
+      }
+    }
+
+    function removeProf(prof) {
+      delete selectedItems[prof];
+      if (slotListeners[prof]) { slotListeners[prof].forEach(u => u()); delete slotListeners[prof]; }
+      document.querySelector(`[data-prof="${prof}"]`)?.classList.remove('selected');
+      document.getElementById('prof-section-' + prof)?.remove();
+    }
+
+    // ── 프로그램별 슬롯+문의 섹션 추가 ─────────────
+    function addProfSlotSection(prof) {
+      const container = document.getElementById('step3Container');
+      const ex = existingByProf[prof];
+      const sec = document.createElement('div');
+      sec.className = 'prof-slot-section';
+      sec.id = 'prof-section-' + prof;
+      sec.innerHTML = `
+        <div class="prof-slot-header">
+          <div>
+            <div class="prof-slot-header-left">📌 ${PROFESSOR_TRACKS[prof] || prof}</div>
+            <div class="prof-slot-header-sub">👤 ${prof} 교수 · 📍 ${PROFESSOR_LOCATIONS[prof] || ''}</div>
+          </div>
+          <button class="btn-remove-prof" onclick="removeProf('${prof}')" title="선택 해제">✕</button>
+        </div>
+        <div class="prof-slot-body">
+          <div id="slots-${prof}">
+            <p class="hint" style="text-align:center;padding:12px 0;">슬롯을 불러오는 중…</p>
+          </div>
+          <div class="message-row">
+            <label>문의 내용<span class="req">*</span></label>
+            <textarea id="message-${prof}" placeholder="${PROFESSOR_TRACKS[prof] || prof} 관련 궁금한 점을 자유롭게 적어 주세요.">${ex ? ex.message : ''}</textarea>
+          </div>
+        </div>`;
+      container.appendChild(sec);
+      renderSlotsForProf(prof);
+
+      // 이미 선택된 다른 교수 시간대 즉시 비활성화
+      Object.entries(selectedItems).forEach(([otherProf, item]) => {
+        if (otherProf !== prof && item.slotId) {
+          const timeKey = item.slotId.split('_').slice(1).join('_');
+          // 약간 딜레이 후 적용 (슬롯 렌더 완료 후)
+          setTimeout(() => disableConflictSlots(otherProf, timeKey), 300);
+        }
+      });
+    }
+
+    // ── 슬롯 렌더 + 실시간 리스너 (드롭다운) ──────────
+    function renderSlotsForProf(prof) {
+      const container = document.getElementById('slots-' + prof);
+      if (!container) return;
+      container.innerHTML = '';
+      slotListeners[prof] = slotListeners[prof] || [];
+
+      const dateMap = {};
+      SLOT_DATA.filter(s => s.professors.includes(prof)).forEach(s => {
+        if (!dateMap[s.date]) dateMap[s.date] = { label: s.dateLabel, slots: [] };
+        dateMap[s.date].slots.push(s);
+      });
+
+      Object.keys(dateMap).sort().forEach(date => {
+        const group = dateMap[date];
+        const groupEl = document.createElement('div');
+        groupEl.className = 'date-group';
+
+        // 드롭다운 버튼
+        const dropBtn = document.createElement('button');
+        dropBtn.className = 'date-dropdown-btn';
+        dropBtn.id = `dropbtn-${prof}-${date}`;
+        dropBtn.innerHTML = `<span>📅 ${group.label}</span><span class="date-dropdown-arrow">▼</span>`;
+        dropBtn.onclick = () => toggleDropdown(prof, date);
+
+        // 드롭다운 패널
+        const panel = document.createElement('div');
+        panel.className = 'slot-dropdown-panel';
+        panel.id = `droppanel-${prof}-${date}`;
+
+        group.slots.forEach(slot => {
+          const slotId = makeSlotId(prof, slot.date, slot.time);
+          const itemEl = document.createElement('button');
+          itemEl.className = 'slot-item';
+          itemEl.id = 'slot-' + slotId;
+          itemEl.setAttribute('data-slotid', slotId);
+          itemEl.setAttribute('data-prof', prof);
+          itemEl.setAttribute('data-date', date);
+          itemEl.disabled = true;
+          itemEl.innerHTML = `<span class="slot-time">⏰ ${slot.time}</span><span class="slot-remain" id="remain-${slotId}">확인 중…</span>`;
+          itemEl.onclick = () => {
+            selectSlot(prof, slotId, `${slot.dateLabel} ${slot.time}`);
+            // 선택 후 드롭다운 닫기
+            closeDropdown(prof, date);
+            // 날짜 버튼에 선택 표시
+            updateDateBtnLabel(prof, date, slot.time);
+          };
+          panel.appendChild(itemEl);
+
+          const unsub = db.collection('bookings')
+            .where('slotId', '==', slotId).where('status', '==', 'confirmed')
+            .onSnapshot(snapshot => updateSlotUI(prof, slotId, MAX_PER_SLOT - snapshot.size),
+              err => console.error('슬롯 리스너 오류:', err));
+          slotListeners[prof].push(unsub);
+        });
+
+        groupEl.appendChild(dropBtn);
+        groupEl.appendChild(panel);
+        container.appendChild(groupEl);
+      });
+    }
+
+    function toggleDropdown(prof, date) {
+      const btn   = document.getElementById(`dropbtn-${prof}-${date}`);
+      const panel = document.getElementById(`droppanel-${prof}-${date}`);
+      const isOpen = panel.classList.contains('open');
+      // 같은 교수 내 다른 날짜 모두 닫기
+      document.querySelectorAll(`[id^="droppanel-${prof}-"]`).forEach(p => { p.classList.remove('open'); });
+      document.querySelectorAll(`[id^="dropbtn-${prof}-"]`).forEach(b => { b.classList.remove('open'); });
+      if (!isOpen) { panel.classList.add('open'); btn.classList.add('open'); }
+    }
+
+    function closeDropdown(prof, date) {
+      document.getElementById(`droppanel-${prof}-${date}`)?.classList.remove('open');
+      document.getElementById(`dropbtn-${prof}-${date}`)?.classList.remove('open');
+    }
+
+    function updateDateBtnLabel(prof, date, time) {
+      const btn = document.getElementById(`dropbtn-${prof}-${date}`);
+      if (!btn) return;
+      const dateLabel = SLOT_DATA.find(s => s.date === date)?.dateLabel || date;
+      btn.innerHTML = `<span>✅ ${dateLabel} · ${time}</span><span class="date-dropdown-arrow">▼</span>`;
+      btn.classList.add('has-selection');
+      btn.classList.remove('open');
+    }
+
+    function resetDateBtnLabel(prof, date) {
+      const btn = document.getElementById(`dropbtn-${prof}-${date}`);
+      if (!btn) return;
+      const dateLabel = SLOT_DATA.find(s => s.date === date)?.dateLabel || date;
+      btn.innerHTML = `<span>📅 ${dateLabel}</span><span class="date-dropdown-arrow">▼</span>`;
+      btn.classList.remove('has-selection');
+    }
+
+    // ── 슬롯 UI 업데이트 ─────────────────────────────
+    function updateSlotUI(prof, slotId, remain) {
+      const itemEl   = document.getElementById('slot-' + slotId);
+      const remainEl = document.getElementById('remain-' + slotId);
+      if (!itemEl || !remainEl) return;
+
+      if (remain <= 0) {
+        itemEl.disabled = true;
+        remainEl.textContent = '마감';
+        remainEl.className = 'slot-remain full';
+        if (selectedItems[prof]?.slotId === slotId) {
+          selectedItems[prof].slotId = null; selectedItems[prof].slotLabel = null;
+          itemEl.classList.remove('selected');
+          showErr('선택하신 슬롯이 마감되었습니다.');
+        }
+      } else {
+        itemEl.disabled = false;
+        remainEl.textContent = `${remain}/${MAX_PER_SLOT}명`;
+        remainEl.className = 'slot-remain ' + (remain <= 2 ? 'low' : 'ok');
+        // 기존 예약 슬롯 자동 선택
+        const ex = existingByProf[prof];
+        if (ex && ex.slotId === slotId && !selectedItems[prof]?.slotId) {
+          selectSlot(prof, slotId, ex.slotLabel);
+          // 날짜 버튼 라벨 업데이트
+          const slotDate = slotId.split('_')[1]; // "2026-05-18" 형태
+          const slotTime = ex.slotLabel.split(' ').slice(-1)[0]; // "09:00~09:30"
+          updateDateBtnLabel(prof, slotDate, slotTime);
+        }
+      }
+    }
+
+    // ── 슬롯 선택 ────────────────────────────────────
+    function selectSlot(prof, slotId, label) {
+      if (!selectedItems[prof]) return;
+
+      // 기존 선택된 슬롯 UI 해제 + 다른 교수 비활성 해제
+      const prevSlotId = selectedItems[prof].slotId;
+      if (prevSlotId && prevSlotId !== slotId) {
+        const prevEl = document.getElementById('slot-' + prevSlotId);
+        if (prevEl) prevEl.classList.remove('selected');
+        const prevDate = prevSlotId.split('_')[1];
+        resetDateBtnLabel(prof, prevDate);
+        // 기존 선택 시간대로 비활성화됐던 다른 교수 슬롯 복원
+        const prevTimeKey = prevSlotId.split('_').slice(1).join('_');
+        reEnableConflictSlots(prof, prevTimeKey);
+      }
+
+      selectedItems[prof].slotId = slotId;
+      selectedItems[prof].slotLabel = label;
+      clearErr();
+
+      // 이 교수 카드 내 선택 표시
+      document.querySelectorAll(`[data-prof="${prof}"].slot-item`).forEach(el =>
+        el.classList.toggle('selected', el.getAttribute('data-slotid') === slotId)
+      );
+
+      // 다른 교수 카드에서 같은 시간대 슬롯 비활성화
+      const timeKey = slotId.split('_').slice(1).join('_');
+      disableConflictSlots(prof, timeKey);
+    }
+
+    // 같은 시간대 다른 교수 슬롯 비활성화
+    function disableConflictSlots(excludeProf, timeKey) {
+      Object.keys(selectedItems).forEach(otherProf => {
+        if (otherProf === excludeProf) return;
+        document.querySelectorAll(`[data-prof="${otherProf}"].slot-item`).forEach(el => {
+          const elTimeKey = el.getAttribute('data-slotid').split('_').slice(1).join('_');
+          if (elTimeKey === timeKey) {
+            el.disabled = true;
+            el.setAttribute('data-conflict', 'true');
+            const remainEl = document.getElementById('remain-' + el.getAttribute('data-slotid'));
+            if (remainEl) { remainEl.textContent = '시간 겹침'; remainEl.className = 'slot-remain full'; }
+          }
+        });
+      });
+    }
+
+    // 시간 겹침 비활성화 해제
+    function reEnableConflictSlots(excludeProf, timeKey) {
+      Object.keys(selectedItems).forEach(otherProf => {
+        if (otherProf === excludeProf) return;
+        document.querySelectorAll(`[data-prof="${otherProf}"].slot-item`).forEach(el => {
+          const elTimeKey = el.getAttribute('data-slotid').split('_').slice(1).join('_');
+          if (elTimeKey === timeKey && el.getAttribute('data-conflict') === 'true') {
+            el.removeAttribute('data-conflict');
+            // 잔여 인원 텍스트는 Firestore 리스너가 자동으로 복원
+          }
+        });
+      });
+    }
+
+    // ── 유효성 검사 ──────────────────────────────────
+    function validate() {
+      if (!studentChecked) return '학생 정보를 먼저 확인해 주세요.';
+      if (Object.keys(selectedItems).length === 0) return '상담 프로그램을 하나 이상 선택해 주세요.';
+      for (const [prof, item] of Object.entries(selectedItems)) {
+        if (!item.slotId) return `${PROFESSOR_TRACKS[prof] || prof} 프로그램의 시간을 선택해 주세요.`;
+        const msg = document.getElementById('message-' + prof)?.value.trim();
+        if (!msg) return `${PROFESSOR_TRACKS[prof] || prof} 프로그램의 문의 내용을 입력해 주세요.`;
+      }
+      // 이번 신청 내 시간대 중복
+      const timeMap = {};
+      for (const [prof, item] of Object.entries(selectedItems)) {
+        const tk = item.slotId.split('_').slice(1).join('_');
+        if (timeMap[tk]) return `${PROFESSOR_TRACKS[timeMap[tk]] || timeMap[tk]}와 ${PROFESSOR_TRACKS[prof] || prof}의 시간대가 겹칩니다.`;
+        timeMap[tk] = prof;
+      }
+      return null;
+    }
+
+    // ── 예약 제출 ────────────────────────────────────
+    async function handleSubmit() {
+      clearErr();
+      const err = validate();
+      if (err) { showErr(err); return; }
+
+      const name      = document.getElementById('inputName').value.trim();
+      const studentId = document.getElementById('inputStudentId').value.trim();
+      const email     = document.getElementById('inputEmailId').value.trim() + '@hanyang.ac.kr';
+
+      const now = new Date();
+      const s = window._regStart ? new Date(window._regStart.replace(' ','T')) : null;
+      const e = window._regEnd   ? new Date(window._regEnd.replace(' ','T'))   : null;
+      if (!s || !e || now < s || now > e) { showErr('신청 기간이 아닙니다.'); return; }
+
+      // 문의 내용 수집
+      for (const prof of Object.keys(selectedItems)) {
+        selectedItems[prof].message = document.getElementById('message-' + prof)?.value.trim() || '';
+      }
+
+      setLoading(true);
+      try {
+        const allMySnap = await db.collection('bookings')
+          .where('studentId', '==', studentId).where('status', '==', 'confirmed').get();
+        const allMyBookings = allMySnap.docs.map(d => ({ id: d.id, ...d.data() }));
+
+        const toDelete = [], toCreate = [];
+
+        for (const [prof, item] of Object.entries(selectedItems)) {
+          const { slotId, slotLabel, message } = item;
+          const existing = allMyBookings.find(b => b.professor === prof && !toDelete.includes(b.id));
+
+          if (existing) {
+            if (existing.slotId === slotId) continue;
+            setLoading(false);
+            const ok = confirm(`${PROFESSOR_TRACKS[prof] || prof}\n기존: ${existing.slotLabel}\n변경: ${slotLabel}\n\n예약을 변경하시겠습니까?`);
+            if (!ok) { setLoading(false); return; }
+            setLoading(true);
+            toDelete.push(existing.id);
+          }
+
+          const timeKey = slotId.split('_').slice(1).join('_');
+          const conflict = allMyBookings.find(b =>
+            !toDelete.includes(b.id) &&
+            b.slotId.split('_').slice(1).join('_') === timeKey
+          );
+          if (conflict) {
+            showErr(`같은 시간대(${conflict.slotLabel})에 이미 ${conflict.professor} 교수님 예약이 있습니다.`);
+            setLoading(false); return;
+          }
+          toCreate.push({ prof, slotId, slotLabel, message });
+        }
+
+        if (toDelete.length === 0 && toCreate.length === 0) {
+          showErr('변경된 내용이 없습니다.'); setLoading(false); return;
+        }
+
+        await db.runTransaction(async (tx) => {
+          for (const item of toCreate) {
+            const countSnap = await db.collection('bookings')
+              .where('slotId', '==', item.slotId).where('status', '==', 'confirmed').get();
+            const activeCount = countSnap.docs.filter(d => !toDelete.includes(d.id)).length;
+            if (activeCount >= MAX_PER_SLOT) throw new Error(`${item.slotLabel} 슬롯이 마감되었습니다.`);
+          }
+          toDelete.forEach(id => tx.delete(db.collection('bookings').doc(id)));
+          toCreate.forEach(item => {
+            tx.set(db.collection('bookings').doc(), {
+              name, studentId, email,
+              professor: item.prof,
+              location: PROFESSOR_LOCATIONS[item.prof] || '',
+              slotId: item.slotId, slotLabel: item.slotLabel,
+              message: item.message,
+              createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+              status: 'confirmed', isModified: toDelete.length > 0
+            });
+          });
+        });
+
+        showSuccess({ name, studentId, items: toCreate, modified: toDelete.length > 0 });
+        sendConfirmEmail({ name, studentId, email, items: toCreate, modified: toDelete.length > 0 });
+
+      } catch(e) {
+        showErr(e.message || '예약 중 오류가 발생했습니다.');
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    // ── 이메일 발송 ──────────────────────────────────
+    const GAS_EMAIL_URL = 'https://script.google.com/macros/s/AKfycbyPpv_AM5Xaf3gfyapIc1S00-AKQ_B3rFBxqj6sDEFHZ7lBb1ekGs8rK1xu2PCYkePiYQ/exec';
+    async function sendConfirmEmail(data) {
+      if (!GAS_EMAIL_URL || GAS_EMAIL_URL === 'YOUR_GAS_WEBAPP_URL') return;
+      try {
+        await fetch(GAS_EMAIL_URL, {
+          method: 'POST', mode: 'no-cors',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            name: data.name, studentId: data.studentId, email: data.email, modified: data.modified,
+            items: data.items.map(item => ({
+              track: PROFESSOR_TRACKS[item.prof] || item.prof, prof: item.prof,
+              slotLabel: item.slotLabel, location: PROFESSOR_LOCATIONS[item.prof] || ''
+            }))
+          })
+        });
+      } catch(e) { console.warn('이메일 발송 오류:', e); }
+    }
+
+    // ── 성공 화면 ────────────────────────────────────
+    function showSuccess(data) {
+      document.getElementById('formSection').style.display = 'none';
+      const sec = document.getElementById('successSection');
+      sec.style.display = 'block';
+      sec.querySelector('.success-title').textContent = data.modified ? '예약이 변경되었습니다!' : '예약이 완료되었습니다!';
+      const rows = data.items.map(item => `
+        <div class="success-row" style="flex-direction:column;align-items:flex-start;gap:4px;padding:10px 0;">
+          <span class="sv" style="font-size:14px;">📌 ${PROFESSOR_TRACKS[item.prof] || item.prof}</span>
+          <span class="sk">👤 ${item.prof} 교수 · ⏰ ${item.slotLabel}</span>
+          <span class="sk">📍 ${PROFESSOR_LOCATIONS[item.prof] || ''}</span>
+        </div>`).join('');
+      document.getElementById('successDetail').innerHTML = `
+        <div class="success-row"><span class="sk">성명</span><span class="sv">${data.name}</span></div>
+        <div class="success-row"><span class="sk">학번</span><span class="sv">${data.studentId}</span></div>
+        ${rows}`;
+      sec.scrollIntoView({ behavior: 'smooth' });
+    }
+
+    // ── 폼 리셋 ──────────────────────────────────────
+    function resetForm() {
+      document.getElementById('successSection').style.display = 'none';
+      document.getElementById('formSection').style.display = 'block';
+      document.getElementById('inputName').value = '';
+      document.getElementById('inputStudentId').value = '';
+      document.getElementById('inputEmailId').value = '';
+      Object.keys(slotListeners).forEach(p => slotListeners[p].forEach(u => u()));
+      selectedItems = {}; slotListeners = {}; existingByProf = {}; studentChecked = false;
+      document.querySelectorAll('.prof-btn').forEach(b => b.classList.remove('selected'));
+      document.getElementById('step3Container').innerHTML = '';
+      document.getElementById('existingBanner').innerHTML = '';
+      document.getElementById('step2').classList.add('locked');
+      document.getElementById('btnSubmit').classList.add('locked');
+      clearErr();
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    // ── 유틸 ─────────────────────────────────────────
+    function showErr(msg) {
+      const el = document.getElementById('errMsg');
+      el.textContent = '⚠️ ' + msg; el.classList.add('show');
+      el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+    function clearErr() { document.getElementById('errMsg').classList.remove('show'); }
+    function setLoading(on) {
+      document.getElementById('btnSubmit').disabled = on;
+      document.getElementById('btnText').style.display = on ? 'none' : 'inline';
+      document.getElementById('spinner').style.display = on ? 'block' : 'none';
+    }
+
+    // ── 신청기간 체크 ────────────────────────────────
+    function formatPeriod(start, end) {
+      const fmt = s => { const d = new Date(s.replace(' ','T')); return `${d.getMonth()+1}월 ${d.getDate()}일 ${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`; };
+      return end ? `${fmt(start)} ~ ${fmt(end)}` : fmt(start);
+    }
+    async function checkRegistrationPeriod() {
+      const periodEl = document.getElementById('regPeriodText');
+      const closedEl = document.getElementById('closedBanner');
+      const formEl   = document.getElementById('formBody');
       try {
         const doc = await db.collection('settings').doc('registration').get();
-        if (doc.exists) {
-          const d = doc.data();
-          const start = d.start || '';
-          const end   = d.end   || '';
-          // datetime-local 입력 필드에 세팅 ("YYYY-MM-DDTHH:MM" 형식)
-          document.getElementById('settingStart').value = start.replace(' ', 'T');
-          document.getElementById('settingEnd').value   = end.replace(' ', 'T');
-          el.innerHTML = `<strong>현재 설정</strong><br>시작: ${start}<br>마감: ${end}`;
-        } else {
-          el.textContent = '설정된 신청기간이 없습니다.';
+        if (!doc.exists || !doc.data().start || !doc.data().end) {
+          periodEl.textContent = '미설정';
+          closedEl.style.display = 'block';
+          document.getElementById('closedTitle').textContent = '현재 신청을 받고 있지 않습니다.';
+          document.getElementById('closedDesc').textContent = '신청 기간이 설정되지 않았습니다.';
+          formEl.style.display = 'none'; return;
         }
-      } catch(e) {
-        el.textContent = '로딩 오류: ' + e.message;
-      }
+        const { start, end } = doc.data();
+        periodEl.textContent = formatPeriod(start, end);
+        window._regStart = start; window._regEnd = end;
+        const now = new Date();
+        if (now < new Date(start.replace(' ','T'))) {
+          closedEl.style.display = 'block';
+          document.getElementById('closedTitle').textContent = '신청 기간이 아직 시작되지 않았습니다.';
+          document.getElementById('closedDesc').textContent = `신청 시작: ${formatPeriod(start, null)}`;
+          formEl.style.display = 'none';
+        } else if (now > new Date(end.replace(' ','T'))) {
+          closedEl.style.display = 'block';
+          document.getElementById('closedTitle').textContent = '신청 기간이 마감되었습니다.';
+          document.getElementById('closedDesc').textContent = `신청 기간: ${formatPeriod(start, end)}`;
+          formEl.style.display = 'none';
+        }
+      } catch(e) { periodEl.textContent = '확인 오류'; console.error(e); }
     }
 
-    // ──────────────────────────────────────────────
-    // 신청기간 저장
-    // ──────────────────────────────────────────────
-    async function savePeriod() {
-      const startRaw = document.getElementById('settingStart').value; // "YYYY-MM-DDTHH:MM"
-      const endRaw   = document.getElementById('settingEnd').value;
-
-      if (!startRaw || !endRaw) {
-        showToast('시작 일시와 마감 일시를 모두 입력해 주세요.', true);
-        return;
-      }
-      if (startRaw >= endRaw) {
-        showToast('마감 일시는 시작 일시보다 늦어야 합니다.', true);
-        return;
-      }
-
-      // "YYYY-MM-DDTHH:MM" → "YYYY-MM-DD HH:MM" 으로 변환해서 저장
-      const start = startRaw.replace('T', ' ');
-      const end   = endRaw.replace('T', ' ');
-
-      try {
-        await db.collection('settings').doc('registration').set({ start, end });
-        showToast('신청기간이 저장되었습니다.');
-        document.getElementById('currentPeriod').innerHTML =
-          `<strong>현재 설정</strong><br>시작: ${start}<br>마감: ${end}`;
-      } catch(e) {
-        showToast('저장 오류: ' + e.message, true);
-      }
-    }
-
-    // ──────────────────────────────────────────────
-    // 토스트
-    // ──────────────────────────────────────────────
-    function showToast(msg, isErr) {
-      const el = document.getElementById('toast');
-      el.textContent = (isErr ? '⚠️ ' : '✅ ') + msg;
-      el.style.background = isErr ? '#dc2626' : '#1e293b';
-      el.classList.add('show');
-      setTimeout(() => el.classList.remove('show'), 3000);
-    }
+    checkRegistrationPeriod();
+    renderProfGrid();
   </script>
 </body>
 </html>
