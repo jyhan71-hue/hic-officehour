@@ -372,6 +372,10 @@
       try {
         await db.collection('bookings').doc(ex.id).update({ status: 'cancelled' });
         delete existingByProf[prof];
+        // 리마인드용 시트에 취소 기록
+        recordToSheet({
+          bookings: [{ bookingId: ex.id, studentId: document.getElementById('inputStudentId').value.trim(), prof, slotId: ex.slotId, slotLabel: ex.slotLabel, status: 'cancelled' }]
+        });
         // removeProf가 리스너 해제 + conflict 복원 + 카드 제거 모두 처리
         if (selectedItems[prof] !== undefined) removeProf(prof);
         renderExistingBanner();
@@ -581,8 +585,9 @@
         // 시간 겹침으로 비활성화된 슬롯은 Firestore 리스너가 덮어쓰지 않음
         if (itemEl.getAttribute('data-conflict') === 'true') return;
         itemEl.disabled = false;
-        remainEl.textContent = `${remain}/${MAX_PER_SLOT}명`;
-        remainEl.className = 'slot-remain ' + (remain <= 2 ? 'low' : 'ok');
+        const booked = MAX_PER_SLOT - remain;
+        remainEl.textContent = `${booked}/${MAX_PER_SLOT}명 예약`;
+        remainEl.className = 'slot-remain ' + (remain <= 0 ? 'full' : remain <= 2 ? 'low' : 'ok');
         // 기존 예약 슬롯 자동 선택
         const ex = existingByProf[prof];
         if (ex && ex.slotId === slotId && !selectedItems[prof]?.slotId) {
@@ -755,6 +760,13 @@
 
         showSuccess({ name, studentId, items: toCreate, modified: toDelete.length > 0 });
         sendConfirmEmail({ name, studentId, email, items: toCreate, modified: toDelete.length > 0 });
+        // 리마인드용 시트 기록
+        recordToSheet({
+          bookings: toCreate.map(item => ({
+            studentId, name, email,
+            prof: item.prof, slotId: item.slotId, slotLabel: item.slotLabel
+          }))
+        });
 
       } catch(e) {
         showErr(e.message || '예약 중 오류가 발생했습니다.');
@@ -765,6 +777,7 @@
 
     // ── 이메일 발송 ──────────────────────────────────
     const GAS_EMAIL_URL = 'https://script.google.com/macros/s/AKfycbyPpv_AM5Xaf3gfyapIc1S00-AKQ_B3rFBxqj6sDEFHZ7lBb1ekGs8rK1xu2PCYkePiYQ/exec';
+
     async function sendConfirmEmail(data) {
       if (!GAS_EMAIL_URL || GAS_EMAIL_URL === 'YOUR_GAS_WEBAPP_URL') return;
       try {
@@ -780,6 +793,33 @@
           })
         });
       } catch(e) { console.warn('이메일 발송 오류:', e); }
+    }
+
+    // ── 예약 기록 시트 저장 (리마인드용) ─────────────
+    async function recordToSheet(data) {
+      if (!GAS_EMAIL_URL || GAS_EMAIL_URL === 'YOUR_GAS_WEBAPP_URL') return;
+      try {
+        await fetch(GAS_EMAIL_URL, {
+          method: 'POST', mode: 'no-cors',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            action: 'recordBooking',
+            bookings: data.bookings.map(b => ({
+              bookingId: b.bookingId || '',
+              studentId: b.studentId,
+              name: b.name,
+              email: b.email,
+              professor: b.prof || b.professor,
+              track: PROFESSOR_TRACKS[b.prof || b.professor] || '',
+              slotId: b.slotId,
+              slotLabel: b.slotLabel,
+              consultDate: b.slotId ? b.slotId.split('_')[1] : '', // "2026-05-18"
+              location: PROFESSOR_LOCATIONS[b.prof || b.professor] || b.location || '',
+              status: b.status || 'confirmed'
+            }))
+          })
+        });
+      } catch(e) { console.warn('기록 시트 저장 오류:', e); }
     }
 
     // ── 성공 화면 ────────────────────────────────────
