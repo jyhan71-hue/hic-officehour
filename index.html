@@ -188,10 +188,13 @@
         <div class="form-row">
           <label>한양메일 ID<span class="req">*</span></label>
           <div class="email-wrap">
-            <input type="text" id="inputEmailId" placeholder="hanyang123" autocomplete="off" />
+            <input type="text" id="inputEmailId" placeholder="hanyang123" autocomplete="off"
+              style="max-width:200px;"
+              oninput="handleEmailInput(this)" />
             <span class="email-domain">@hanyang.ac.kr</span>
           </div>
-          <p class="hint" style="margin-top:7px;font-size:13px;color:var(--acc2);font-weight:600;">📧 입력하신 한양메일로 예약 확인 이메일이 발송됩니다.</p>
+          <p class="hint" id="emailPreview" style="margin-top:6px;font-size:12px;color:var(--tx2);"></p>
+          <p class="hint" style="margin-top:3px;font-size:13px;color:var(--acc2);font-weight:600;">📧 입력하신 한양메일로 예약 확인 이메일이 발송됩니다.</p>
         </div>
         <button class="btn-lookup" onclick="lookupStudent()">
           <span id="lookupBtnText">다음 →</span>
@@ -375,6 +378,25 @@
         showToastMsg(`${track} 예약이 취소되었습니다.`);
       } catch(e) {
         alert('취소 중 오류가 발생했습니다: ' + e.message);
+      }
+    }
+
+    // ── 이메일 입력 처리 (@ 이후 자동 제거 + 미리보기) ──
+    function handleEmailInput(input) {
+      // @ 포함해서 입력한 경우 ID 부분만 추출
+      let val = input.value;
+      if (val.includes('@')) {
+        val = val.split('@')[0];
+        input.value = val;
+      }
+      // 미리보기 업데이트
+      const preview = document.getElementById('emailPreview');
+      if (val.trim()) {
+        preview.textContent = '✉️ ' + val.trim() + '@hanyang.ac.kr';
+        preview.style.color = 'var(--acc2)';
+        preview.style.fontWeight = '600';
+      } else {
+        preview.textContent = '';
       }
     }
 
