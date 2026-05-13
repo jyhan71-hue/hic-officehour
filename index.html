@@ -338,7 +338,39 @@
         document.getElementById('step2').scrollIntoView({ behavior: 'smooth', block: 'start' });
 
       } catch(e) {
-        showErr('조회 중 오류: ' + e.message);
+        console.error('lookupStudent 오류:', e);
+        // Firestore 인덱스 오류인 경우 인덱스 없이 재시도
+        if (e.code === 'failed-precondition' || e.message?.includes('index')) {
+          try {
+            const snap2 = await db.collection('bookings')
+              .where('studentId', '==', studentId)
+              .get();
+            existingByProf = {};
+            snap2.forEach(doc => {
+              const d = doc.data();
+              if (d.status === 'confirmed') {
+                existingByProf[d.professor] = { id: doc.id, slotId: d.slotId, slotLabel: d.slotLabel, message: d.message || '' };
+              }
+            });
+            renderExistingBanner();
+            document.getElementById('step2').classList.remove('locked');
+            document.getElementById('btnSubmit').classList.remove('locked');
+            document.getElementById('btnSubmit').disabled = false;
+            studentChecked = true;
+            Object.keys(existingByProf).forEach(prof => {
+              if (!selectedItems[prof]) {
+                selectedItems[prof] = { slotId: null, slotLabel: null, message: '' };
+                document.querySelector(`[data-prof="${prof}"]`)?.classList.add('selected');
+                addProfSlotSection(prof);
+              }
+            });
+            document.getElementById('step2').scrollIntoView({ behavior: 'smooth', block: 'start' });
+          } catch(e2) {
+            showErr('조회 중 오류가 발생했습니다. 페이지를 새로고침 후 다시 시도해 주세요.');
+          }
+        } else {
+          showErr('조회 중 오류가 발생했습니다: ' + e.message);
+        }
       } finally {
         document.getElementById('lookupBtnText').style.display = 'inline';
         document.getElementById('lookupSpinner').style.display = 'none';
