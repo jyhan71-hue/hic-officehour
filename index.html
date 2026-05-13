@@ -934,7 +934,7 @@ function clearErr() { document.getElementById('errMsg').classList.remove('show')
 function setLoading(on) {
   document.getElementById('btnSubmit').disabled = on;
   document.getElementById('btnText').style.display = on ? 'none' : 'inline';
-  document.getElementById('spinner').style.display = on ? 'block' : 'none';
+  document.getElementById('spinner').style.display = on ? 'inline-block' : 'none';
 }
 
 // ── 신청기간 체크 ────────────────────────────────
@@ -949,11 +949,9 @@ async function checkRegistrationPeriod() {
   try {
     const doc = await db.collection('settings').doc('registration').get();
     if (!doc.exists || !doc.data().start || !doc.data().end) {
-      periodEl.textContent = '미설정';
-      closedEl.style.display = 'block';
-      document.getElementById('closedTitle').textContent = '현재 신청을 받고 있지 않습니다.';
-      document.getElementById('closedDesc').textContent = '신청 기간이 설정되지 않았습니다.';
-      formEl.style.display = 'none'; return;
+      // 신청기간 미설정 → 폼은 열어두고 안내만 표시
+      periodEl.textContent = '추후 공지';
+      return;
     }
     const { start, end } = doc.data();
     periodEl.textContent = formatPeriod(start, end);
@@ -970,7 +968,11 @@ async function checkRegistrationPeriod() {
       document.getElementById('closedDesc').textContent = `신청 기간: ${formatPeriod(start, end)}`;
       formEl.style.display = 'none';
     }
-  } catch(e) { periodEl.textContent = '확인 오류'; console.error(e); }
+  } catch(e) {
+    // Firestore 오류 시 폼은 보이게 유지
+    periodEl.textContent = '추후 공지';
+    console.error('신청기간 로딩 오류:', e);
+  }
 }
 
 checkRegistrationPeriod();
