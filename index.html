@@ -206,7 +206,7 @@
     </div>
     <button class="btn-lookup" onclick="lookupStudent()">
       <span id="lookupBtnText">다음 →</span>
-      <div class="spinner" id="lookupSpinner"></div>
+      <span class="spinner" id="lookupSpinner"></span>
     </button>
   </div>
 
@@ -226,7 +226,7 @@
 
   <button class="btn-submit locked" id="btnSubmit" onclick="handleSubmit()">
     <span id="btnText">예약 신청하기</span>
-    <div class="spinner" id="spinner"></div>
+    <span class="spinner" id="spinner"></span>
   </button>
 
 </div>
@@ -242,7 +242,7 @@
     <button class="btn-again" onclick="resetForm()">처음으로 돌아가기</button>
   </div>
 
-  <script src="firebase-config.js?v=20260514"></script>
+  <script src="firebase-config.js"></script>
 
   <script>
     firebase.initializeApp(FIREBASE_CONFIG);
