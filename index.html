@@ -842,7 +842,7 @@
         });
 
         showSuccess({ name, studentId, dept, items: toCreate, modified: toDelete.length > 0 });
-        sendConfirmEmail({ name, studentId, email, items: toCreate, modified: toDelete.length > 0 });
+        sendConfirmEmail({ name, studentId, email, dept, items: toCreate, modified: toDelete.length > 0 });
         // 리마인드용 시트 기록
         recordToSheet({
           bookings: toCreate.map(item => ({
@@ -868,7 +868,8 @@
           method: 'POST', mode: 'no-cors',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            name: data.name, studentId: data.studentId, email: data.email, modified: data.modified,
+            name: data.name, studentId: data.studentId, email: data.email,
+            dept: data.dept || '', modified: data.modified,
             items: data.items.map(item => ({
               track: PROFESSOR_TRACKS[item.prof] || item.prof, prof: item.prof,
               slotLabel: item.slotLabel, location: PROFESSOR_LOCATIONS[item.prof] || ''
