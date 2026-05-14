@@ -189,6 +189,15 @@
           <input type="text" id="inputStudentId" placeholder="2024000000" autocomplete="off" maxlength="10" inputmode="numeric" oninput="this.value=this.value.replace(/[^0-9]/g,'')" />
         </div>
         <div class="form-row">
+          <label>소속 학과<span class="req">*</span></label>
+          <input type="text" id="inputDept" placeholder="예) 컴퓨터소프트웨어학부" autocomplete="off" />
+          <label style="display:flex;align-items:center;gap:7px;margin-top:8px;cursor:pointer;font-size:13px;color:var(--tx);font-weight:500;">
+            <input type="checkbox" id="chkHIC" onchange="handleHICCheck(this)"
+              style="width:16px;height:16px;accent-color:var(--acc2);cursor:pointer;" />
+            한양인터칼리지학부(HIC) 소속입니다
+          </label>
+        </div>
+        <div class="form-row">
           <label>한양메일 ID<span class="req">*</span></label>
           <div class="email-wrap">
             <input type="text" id="inputEmailId" placeholder="hanyang123" autocomplete="off"
@@ -284,6 +293,8 @@
       if (!/^\d{10}$/.test(studentId)) return showErr('학번은 숫자 10자리로 입력해 주세요.');
       if (!emailId)   return showErr('한양메일 ID를 입력해 주세요.');
       if (!/^[a-zA-Z0-9._-]+$/.test(emailId)) return showErr('이메일 ID에 사용할 수 없는 문자가 있습니다.');
+      const dept = document.getElementById('inputDept').value.trim();
+      if (!dept) return showErr('소속 학과를 입력해 주세요.');
       clearErr();
 
       // 재조회 시 기존 상태 초기화 (다음 버튼 재클릭 대응)
@@ -417,6 +428,23 @@
         showToastMsg(`${track} 예약이 취소되었습니다.`);
       } catch(e) {
         alert('취소 중 오류가 발생했습니다: ' + e.message);
+      }
+    }
+
+    // ── HIC 체크박스 ─────────────────────────────────
+    function handleHICCheck(cb) {
+      const deptInput = document.getElementById('inputDept');
+      if (cb.checked) {
+        deptInput.value = '한양인터칼리지학부';
+        deptInput.readOnly = true;
+        deptInput.style.background = '#f0f4fa';
+        deptInput.style.color = 'var(--tx2)';
+      } else {
+        deptInput.value = '';
+        deptInput.readOnly = false;
+        deptInput.style.background = '';
+        deptInput.style.color = '';
+        deptInput.focus();
       }
     }
 
@@ -743,6 +771,7 @@
       const name      = document.getElementById('inputName').value.trim();
       const studentId = document.getElementById('inputStudentId').value.trim();
       const email     = document.getElementById('inputEmailId').value.trim() + '@hanyang.ac.kr';
+      const dept      = document.getElementById('inputDept').value.trim();
 
       const now = new Date();
       const s = window._regStart ? new Date(window._regStart.replace(' ','T')) : null;
@@ -801,7 +830,7 @@
           toDelete.forEach(id => tx.delete(db.collection('bookings').doc(id)));
           toCreate.forEach(item => {
             tx.set(db.collection('bookings').doc(), {
-              name, studentId, email,
+              name, studentId, email, dept,
               professor: item.prof,
               location: PROFESSOR_LOCATIONS[item.prof] || '',
               slotId: item.slotId, slotLabel: item.slotLabel,
@@ -812,12 +841,12 @@
           });
         });
 
-        showSuccess({ name, studentId, items: toCreate, modified: toDelete.length > 0 });
+        showSuccess({ name, studentId, dept, items: toCreate, modified: toDelete.length > 0 });
         sendConfirmEmail({ name, studentId, email, items: toCreate, modified: toDelete.length > 0 });
         // 리마인드용 시트 기록
         recordToSheet({
           bookings: toCreate.map(item => ({
-            studentId, name, email,
+            studentId, name, email, dept,
             prof: item.prof, slotId: item.slotId, slotLabel: item.slotLabel
           }))
         });
@@ -891,6 +920,7 @@
       document.getElementById('successDetail').innerHTML = `
         <div class="success-row"><span class="sk">성명</span><span class="sv">${data.name}</span></div>
         <div class="success-row"><span class="sk">학번</span><span class="sv">${data.studentId}</span></div>
+        <div class="success-row"><span class="sk">학과</span><span class="sv">${data.dept || ''}</span></div>
         ${rows}`;
       sec.scrollIntoView({ behavior: 'smooth' });
     }
@@ -901,6 +931,10 @@
       document.getElementById('formSection').style.display = 'block';
       document.getElementById('inputName').value = '';
       document.getElementById('inputStudentId').value = '';
+      document.getElementById('inputDept').value = '';
+      document.getElementById('chkHIC').checked = false;
+      const deptInput = document.getElementById('inputDept');
+      deptInput.readOnly = false; deptInput.style.background = ''; deptInput.style.color = '';
       document.getElementById('inputEmailId').value = '';
       document.getElementById('emailPreview').textContent = '';
       Object.keys(slotListeners).forEach(p => slotListeners[p].forEach(u => u()));
