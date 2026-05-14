@@ -334,6 +334,7 @@
               <th>#</th>
               <th>성명</th>
               <th>학번</th>
+              <th>학과</th>
               <th>이메일</th>
               <th>교수</th>
               <th>일시</th>
@@ -342,7 +343,7 @@
             </tr>
           </thead>
           <tbody id="bookingsTbody">
-            <tr class="loading-row"><td colspan="8">로딩 중…</td></tr>
+            <tr class="loading-row"><td colspan="9">로딩 중…</td></tr>
           </tbody>
         </table>
       </div>
@@ -530,23 +531,18 @@
     function renderTable(data) {
       const tbody = document.getElementById('bookingsTbody');
       if (data.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="8" class="empty-state">예약 내역이 없습니다.</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="9" class="empty-state">예약 내역이 없습니다.</td></tr>';
         return;
       }
       tbody.innerHTML = data.map((b, i) => {
-        const status = b.status === 'cancelled'
-          ? '<span class="badge badge-err">취소</span>'
-          : '<span class="badge badge-ok">확정</span>';
         const createdAt = b.createdAt
           ? (b.createdAt.toDate ? b.createdAt.toDate() : new Date(b.createdAt)).toLocaleString('ko-KR')
           : '-';
-        const cancelBtn = b.status !== 'cancelled'
-          ? `<button class="btn-cancel" onclick="cancelBooking('${b.id}','${b.name}')">취소</button>`
-          : '-';
-          return `<tr>
+        return `<tr>
           <td>${i + 1}</td>
           <td><strong>${b.name}</strong></td>
           <td>${b.studentId}</td>
+          <td style="font-size:12px;color:var(--tx2);">${b.dept || '-'}</td>
           <td><a href="mailto:${b.email}" style="color:var(--acc2);text-decoration:none;">${b.email}</a></td>
           <td>${b.professor}</td>
           <td style="white-space:nowrap;">${b.slotLabel || '-'}</td>
@@ -637,6 +633,7 @@
         slotLabel: b.slotLabel || '',
         name: b.name,
         studentId: b.studentId,
+        dept: b.dept || '',
         email: b.email,
         location: b.location || '',
         message: b.message || ''
